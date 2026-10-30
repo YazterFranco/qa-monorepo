@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - libs/*
+  - tests-of-layers
+
+catalog:
+  "@playwright/test": 1.64.1
+  "@types/node": 26.6.6
+  eslint: 10.13.0
+  typescript: 6.0.3
+  zod: 4.6.7

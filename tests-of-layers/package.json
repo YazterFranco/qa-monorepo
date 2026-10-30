@@ -1,0 +1,20 @@
+{
+  "name": "tests-of-layers",
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "test:layers": "playwright test",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "pages": "workspace:*",
+    "steps": "workspace:*",
+    "test-data": "workspace:*"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

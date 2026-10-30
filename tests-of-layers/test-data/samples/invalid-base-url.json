@@ -1,0 +1,5 @@
+{
+  "baseUrl": "no-es-una-url",
+  "users": { "standard": { "username": "ana", "password": "clave-de-prueba" } },
+  "messages": {}
+}

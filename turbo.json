@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["tsconfig.base.json", "eslint.config.mjs"],
+  "globalEnv": ["CI"],
+  "tasks": {
+    "lint": {
+      "dependsOn": ["^lint"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
+    "test:layers": {
+      "dependsOn": ["^typecheck"],
+      "outputs": ["playwright-report/**", "test-results/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["^typecheck"],
+      "env": ["TEST_ENV"],
+      "outputs": ["blob-report/**", "playwright-report/**", "test-results/**"],
+      "cache": false
+    }
+  }
+}

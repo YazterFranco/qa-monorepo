@@ -1,0 +1,11 @@
+{
+  "baseUrl": "https://the-internet.herokuapp.com",
+  "users": {
+    "standard": { "username": "tomsmith", "password": "SuperSecretPassword!" },
+    "invalid": { "username": "wronguser", "password": "wrongpassword" }
+  },
+  "messages": {
+    "loginSuccess": "You logged into a secure area!",
+    "invalidUsername": "Your username is invalid!"
+  }
+}
