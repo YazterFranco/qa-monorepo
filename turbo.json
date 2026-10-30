@@ -20,6 +20,12 @@
       "env": ["TEST_ENV"],
       "outputs": ["blob-report/**", "playwright-report/**", "test-results/**"],
       "cache": false
+    },
+    "test:mobile": {
+      "dependsOn": ["^typecheck"],
+      "env": ["TEST_ENV", "ANDROID_AVD", "ANDROID_HOME", "JAVA_HOME"],
+      "outputs": ["test-results/**"],
+      "cache": false
     }
   }
 }

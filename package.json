@@ -12,6 +12,7 @@
     "prepare": "husky",
     "test:e2e": "turbo run test:e2e",
     "test:layers": "turbo run test:layers",
+    "test:mobile": "turbo run test:mobile",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

@@ -15,6 +15,10 @@ La configuración base fija:
 - **Local:** sin reintentos, reporte en consola y HTML.
 - **En CI (`CI` definida):** 2 reintentos, 2 workers, prohíbe `test.only` y genera JUnit y un reporte "blob" por shard, que el pipeline une en un solo HTML.
 
+No fija navegador: las apps web agregan `desktopChromium` en `projects`, y la de API usa un proyecto sin navegador.
+
+La `baseURL` no va aquí: la pone la fixture de cada producto a partir de su ambiente.
+
 ## Reglas
 
 - Nada de negocio: si una función conoce una pantalla o un flujo, va en `pages` o `steps`.
@@ -23,17 +27,15 @@ La configuración base fija:
 
 ## Ejemplo
 
-[apps/web-e2e/playwright.config.ts](../../apps/web-e2e/playwright.config.ts):
+[apps/saucedemo-e2e/playwright.config.ts](../../apps/saucedemo-e2e/playwright.config.ts):
 
 ```ts
 import { defineConfig } from "@playwright/test";
-import { loadEnvironment } from "test-data";
-import { basePlaywrightConfig } from "utils";
-
-const env = loadEnvironment();
+import { basePlaywrightConfig, desktopChromium } from "utils";
 
 export default defineConfig(basePlaywrightConfig, {
   testDir: ".",
-  use: { baseURL: env.baseUrl },
+  projects: [desktopChromium],
+  use: { testIdAttribute: "data-test" },
 });
 ```

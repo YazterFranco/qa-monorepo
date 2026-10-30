@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI);
 
-/** Configuración común de Playwright. Cada app la extiende y agrega su baseURL. */
+/** Configuración común de Playwright. Cada app la extiende y elige sus proyectos. */
 export const basePlaywrightConfig = defineConfig({
   testMatch: "**/*.spec.ts",
   fullyParallel: true,
@@ -18,5 +18,7 @@ export const basePlaywrightConfig = defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });
+
+/** Proyecto de las apps web. Las de API no lo usan, porque no abren navegador. */
+export const desktopChromium = { name: "chromium", use: { ...devices["Desktop Chrome"] } };

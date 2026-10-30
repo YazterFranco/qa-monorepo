@@ -1,0 +1,6 @@
+{
+  "users": {
+    "standard": { "username": "bod@example.com", "password": "10203040" },
+    "lockedOut": { "username": "alice@example.com", "password": "10203040" }
+  }
+}

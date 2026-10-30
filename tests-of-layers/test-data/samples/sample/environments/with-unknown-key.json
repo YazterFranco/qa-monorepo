@@ -1,0 +1,5 @@
+{
+  "baseUrl": "https://example.test",
+  "users": { "standard": { "username": "ana", "password": "clave-de-prueba" } },
+  "costumers": {}
+}

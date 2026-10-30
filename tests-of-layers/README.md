@@ -10,32 +10,43 @@ Usan el runner de Playwright, pero ninguna pide la fixture `page`, así que no s
 
 ## Qué se prueba
 
-| Carpeta                | Capa        | Cómo                                                        |
-| ---------------------- | ----------- | ----------------------------------------------------------- |
-| [test-data](test-data) | `test-data` | Carga ambientes reales y de ejemplo en `test-data/samples/` |
-| [pages](pages)         | `pages`     | Con una page simulada que registra cada acción              |
-| [steps](steps)         | `steps`     | Con la page simulada y un ambiente escrito en la prueba     |
+| Carpeta                  | Capa         | Cómo                                                                           |
+| ------------------------ | ------------ | ------------------------------------------------------------------------------ |
+| [test-data](test-data)   | `test-data`  | Datos reales de cada producto y un producto de ejemplo en `test-data/samples/` |
+| [pages](pages)           | `pages`      | Con una page simulada que registra cada acción                                 |
+| [components](components) | `components` | Con la page simulada, revisando que busque dentro de su contenedor             |
+| [api](api)               | `api`        | Con un `request` simulado que registra método, URL, cuerpo y cabeceras         |
+| [steps](steps)           | `steps`      | Con la page o el request simulados y datos escritos en la prueba               |
+
+Dentro de cada carpeta hay una subcarpeta por producto, igual que en `libs/`.
 
 ## Page simulada
 
-[support/fake-page.ts](support/fake-page.ts) implementa solo lo que usan pages y steps (`goto`, `getByLabel`, `getByRole`, `locator`, `fill`, `click`, `innerText`) y guarda cada acción como texto:
+[support/fake-page.ts](support/fake-page.ts) implementa solo lo que usan pages, components y steps (`goto`, `getByLabel`, `getByRole`, `getByTestId`, `locator`, `fill`, `click`, `selectOption`, `innerText`, `allInnerTexts`) y guarda cada acción como texto. Los locators encadenados se escriben con `>`:
 
 ```ts
 const { page, actions } = createFakePage();
 
-await new LoginPage(page).login("ana", "clave-de-prueba");
+await new CheckoutSteps(page).completeOrder(customer);
 
 expect(actions).toEqual([
-  'fill label "Username" = ana',
-  'fill label "Password" = clave-de-prueba',
-  'click button "Login"',
+  'click testid "header-container" > testid "shopping-cart-link"',
+  'click testid "checkout"',
+  'fill testid "firstName" = Ana',
+  // ...
 ]);
 ```
 
+Para que un locator devuelva textos, pásalos al crearla: `createFakePage({ 'testid "inventory-item-price"': ["$29.99"] })`.
+
 Si un page nuevo usa otro método de Playwright, agrégalo a la page simulada.
+
+[support/fake-request.ts](support/fake-request.ts) hace lo mismo para la API: registra cada llamada y responde lo que se le configure por `"MÉTODO /ruta"`.
+
+Las screens de Android todavía no tienen pruebas de capa; se prueban con los specs móviles.
 
 ## Reglas
 
-- **Archivos `*.test.ts`**, en la carpeta de la capa que prueban.
+- **Archivos `*.test.ts`**, en la carpeta de la capa y el producto que prueban.
 - **Datos inventados en la prueba o en `samples/`**, nunca credenciales reales.
 - **Importan `test` y `expect` desde `@playwright/test`**, no desde `fixtures`: la fixture `auth` pide la `page`, y eso abre un navegador.

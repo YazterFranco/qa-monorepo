@@ -6,13 +6,17 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "api": "workspace:*",
+    "components": "workspace:*",
     "steps": "workspace:*",
     "test-data": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
+    "@wdio/globals": "catalog:",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "webdriverio": "catalog:"
   }
 }

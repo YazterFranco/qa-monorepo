@@ -1,2 +1,13 @@
 export { DEFAULT_ENVIRONMENT, loadEnvironment, resolveVariables, type LoadOptions } from "./loader";
-export { environmentSchema, userSchema, type Environment, type User } from "./schema";
+export {
+  bookingSchema,
+  customerSchema,
+  environmentSchema,
+  productSchema,
+  userSchema,
+  type Booking,
+  type Customer,
+  type Environment,
+  type Product,
+  type User,
+} from "./schema";

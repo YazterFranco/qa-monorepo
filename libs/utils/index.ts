@@ -1,1 +1,1 @@
-export { basePlaywrightConfig } from "./playwright.base";
+export { basePlaywrightConfig, desktopChromium } from "./playwright.base";

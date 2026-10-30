@@ -12,10 +12,12 @@
     "noEmit": true,
     "types": ["node"],
     "paths": {
+      "api/*": ["./libs/api/*/index.ts"],
       "components": ["./libs/components/index.ts"],
-      "fixtures": ["./libs/fixtures/index.ts"],
-      "pages": ["./libs/pages/index.ts"],
-      "steps": ["./libs/steps/index.ts"],
+      "components/*": ["./libs/components/*/index.ts"],
+      "fixtures/*": ["./libs/fixtures/*/index.ts"],
+      "pages/*": ["./libs/pages/*/index.ts"],
+      "steps/*": ["./libs/steps/*/index.ts"],
       "test-data": ["./libs/test-data/index.ts"],
       "utils": ["./libs/utils/index.ts"]
     }

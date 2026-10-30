@@ -3,26 +3,36 @@ import playwright from "eslint-plugin-playwright";
 import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
-const LAYER_ORDER = "specs → fixtures → steps → pages → components";
+const LAYER_ORDER = "specs → fixtures → steps → pages | api → components";
 
-/** Prohíbe que una capa importe a las que están por encima de ella. */
+/** Prohíbe que una capa importe a las que están por encima de ella, incluidas sus rutas por producto. */
 function upperLayers(...names) {
   return names.map((name) => ({
-    name,
+    group: [name, `${name}/*`],
     message: `Una capa inferior no conoce a la superior (${LAYER_ORDER}).`,
   }));
 }
 
-const noAssertions = {
-  name: "@playwright/test",
+const noAssertions = ["@playwright/test", "@wdio/globals"].map((name) => ({
+  name,
   importNames: ["expect"],
-  message: "Las aserciones van en los specs, no en pages ni components.",
-};
+  message: "Las aserciones van en los specs, no en pages, components ni api.",
+}));
 
-const noSelectors = {
-  selector: "CallExpression[callee.property.name=/^(locator|getBy[A-Z]\\w*)$/]",
-  message: "Los selectores van en los page objects.",
-};
+// Playwright: locator y getBy*. WebdriverIO: $ y $$, sueltos o como método.
+const noSelectors = [
+  {
+    selector: "CallExpression[callee.property.name=/^(locator|getBy[A-Z]\\w*|\\$\\$?)$/]",
+    message: "Los selectores van en los page objects.",
+  },
+  {
+    selector: "CallExpression[callee.name=/^\\$\\$?$/]",
+    message: "Los selectores van en los page objects.",
+  },
+];
+
+// Producto móvil: corre con WebdriverIO y Mocha, no con el runner de Playwright.
+const MOBILE = ["apps/my-demo-app-e2e/**", "libs/*/my-demo-app/**"];
 
 export default defineConfig(
   globalIgnores([
@@ -47,6 +57,7 @@ export default defineConfig(
 
   {
     files: ["**/*.ts"],
+    ignores: MOBILE,
     extends: [playwright.configs["flat/recommended"]],
     rules: {
       "playwright/no-wait-for-timeout": "error",
@@ -61,7 +72,10 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": [
         "error",
-        { paths: [...upperLayers("pages", "steps", "fixtures", "test-data"), noAssertions] },
+        {
+          paths: noAssertions,
+          patterns: upperLayers("pages", "api", "steps", "fixtures", "test-data"),
+        },
       ],
     },
   },
@@ -70,15 +84,27 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": [
         "error",
-        { paths: [...upperLayers("steps", "fixtures", "test-data"), noAssertions] },
+        { paths: noAssertions, patterns: upperLayers("api", "steps", "fixtures", "test-data") },
+      ],
+    },
+  },
+  {
+    files: ["libs/api/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: noAssertions,
+          patterns: upperLayers("components", "pages", "steps", "fixtures", "test-data"),
+        },
       ],
     },
   },
   {
     files: ["libs/steps/**/*.ts"],
     rules: {
-      "no-restricted-imports": ["error", { paths: upperLayers("fixtures") }],
-      "no-restricted-syntax": ["error", noSelectors],
+      "no-restricted-imports": ["error", { patterns: upperLayers("fixtures") }],
+      "no-restricted-syntax": ["error", ...noSelectors],
     },
   },
   {
@@ -86,7 +112,7 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": [
         "error",
-        { paths: upperLayers("components", "pages", "steps", "fixtures") },
+        { patterns: upperLayers("components", "pages", "api", "steps", "fixtures") },
       ],
     },
   },
@@ -95,7 +121,7 @@ export default defineConfig(
     rules: {
       "no-restricted-imports": [
         "error",
-        { paths: upperLayers("components", "pages", "steps", "fixtures") },
+        { patterns: upperLayers("components", "pages", "api", "steps", "fixtures") },
       ],
     },
   },
@@ -113,12 +139,12 @@ export default defineConfig(
           paths: [
             {
               name: "@playwright/test",
-              message: 'Importa test y expect desde "fixtures".',
+              message: 'Importa test y expect desde "fixtures/<producto>".',
             },
           ],
         },
       ],
-      "no-restricted-syntax": ["error", noSelectors],
+      "no-restricted-syntax": ["error", ...noSelectors],
     },
   },
 );

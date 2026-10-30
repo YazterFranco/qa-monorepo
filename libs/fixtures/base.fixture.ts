@@ -1,26 +1,29 @@
 import { test as base, expect } from "@playwright/test";
-import { AuthSteps } from "steps";
 import { loadEnvironment, type Environment } from "test-data";
 
-interface TestFixtures {
-  auth: AuthSteps;
-}
-
-interface WorkerFixtures {
+export interface ProductWorkerFixtures {
   env: Environment;
 }
 
-export const test = base.extend<TestFixtures, WorkerFixtures>({
-  // Se carga una vez por worker; el ambiente sale de TEST_ENV.
-  env: [
-    async ({}, use) => {
-      await use(loadEnvironment());
+/**
+ * Test base de un producto: carga sus datos del ambiente de TEST_ENV una vez por worker
+ * y usa su baseUrl como baseURL de Playwright.
+ */
+export function productTest(product: string) {
+  return base.extend<object, ProductWorkerFixtures>({
+    env: [
+      async ({}, use) => {
+        await use(loadEnvironment(product));
+      },
+      { scope: "worker" },
+    ],
+    baseURL: async ({ env }, use) => {
+      if (!env.baseUrl) {
+        throw new Error(`El ambiente de "${product}" no tiene baseUrl.`);
+      }
+      await use(env.baseUrl);
     },
-    { scope: "worker" },
-  ],
-  auth: async ({ page, env }, use) => {
-    await use(new AuthSteps(page, env));
-  },
-});
+  });
+}
 
 export { expect };
