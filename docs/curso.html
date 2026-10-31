@@ -1,0 +1,3133 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Curso del monorepo</title>
+    <style>
+      :root {
+        --bg: #f7f7f4;
+        --surface: #ffffff;
+        --surface-2: #f1f0ec;
+        --text: #1d1d1b;
+        --muted: #5e5d58;
+        --border: #e2e1dc;
+        --accent: #2f5bd3;
+        --accent-soft: #e9eefc;
+        --ok: #1f7a4d;
+        --ok-soft: #e4f3eb;
+        --bad: #b3261e;
+        --bad-soft: #fbe9e7;
+        --warn: #8a5a00;
+        --warn-soft: #fcf2db;
+        --code-bg: #f3f2ee;
+        --tok-k: #7a3db8;
+        --tok-s: #0f6b4a;
+        --tok-c: #8a8a84;
+        --radius: 10px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #141413;
+          --surface: #1c1c1a;
+          --surface-2: #242422;
+          --text: #ecebe6;
+          --muted: #a3a29b;
+          --border: #34342f;
+          --accent: #8aa8ff;
+          --accent-soft: #222a43;
+          --ok: #6fcf97;
+          --ok-soft: #1b2e23;
+          --bad: #ff8a80;
+          --bad-soft: #3a1f1c;
+          --warn: #f2c66d;
+          --warn-soft: #3a2f17;
+          --code-bg: #232321;
+          --tok-k: #c9a2ff;
+          --tok-s: #7fd8a8;
+          --tok-c: #85847d;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --surface-2: #242422;
+        --text: #ecebe6;
+        --muted: #a3a29b;
+        --border: #34342f;
+        --accent: #8aa8ff;
+        --accent-soft: #222a43;
+        --ok: #6fcf97;
+        --ok-soft: #1b2e23;
+        --bad: #ff8a80;
+        --bad-soft: #3a1f1c;
+        --warn: #f2c66d;
+        --warn-soft: #3a2f17;
+        --code-bg: #232321;
+        --tok-k: #c9a2ff;
+        --tok-s: #7fd8a8;
+        --tok-c: #85847d;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.6 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      code,
+      pre {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.86em;
+      }
+      :not(pre) > code {
+        background: var(--surface-2);
+        border-radius: 4px;
+        padding: 1px 5px;
+      }
+      a {
+        color: var(--accent);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 290px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      aside.side {
+        border-right: 1px solid var(--border);
+        background: var(--surface);
+        padding: 20px 14px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .brand {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0 6px 2px;
+      }
+      .brand-sub {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin: 0 6px 14px;
+      }
+      .progress {
+        margin: 0 6px 16px;
+      }
+      .bar {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        overflow: hidden;
+      }
+      .bar span {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--ok);
+        transition: width 0.3s;
+      }
+      .progress small {
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .toc {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .toc .part {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        margin: 14px 6px 6px;
+      }
+      .toc button {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+        align-items: baseline;
+        text-align: left;
+        border: 0;
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-size: 0.92rem;
+        padding: 7px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .toc button:hover {
+        background: var(--surface-2);
+      }
+      .toc button[aria-current="true"] {
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .toc .num {
+        color: var(--muted);
+        font-size: 0.78rem;
+        min-width: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+      .toc .done-mark {
+        margin-left: auto;
+        color: var(--ok);
+        font-weight: 700;
+      }
+      .side-links {
+        margin: 18px 6px 0;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .side-links a {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .theme-btn {
+        margin: 14px 6px 0;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 0.82rem;
+        cursor: pointer;
+      }
+      .mobile-bar {
+        display: none;
+      }
+      main {
+        padding: 32px 40px 80px;
+        max-width: 900px;
+      }
+      .lesson[hidden] {
+        display: none;
+      }
+      .kicker {
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      h1 {
+        font-size: 1.85rem;
+        line-height: 1.2;
+        margin: 0 0 10px;
+        letter-spacing: -0.015em;
+      }
+      h2 {
+        font-size: 1.2rem;
+        margin: 28px 0 8px;
+      }
+      h3 {
+        font-size: 1rem;
+        margin: 18px 0 6px;
+      }
+      .summary {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        margin: 14px 0 6px;
+      }
+      .summary strong {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .summary ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      p,
+      li {
+        max-width: 72ch;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 10px 0 14px;
+        font-size: 0.92rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      th {
+        background: var(--surface-2);
+        font-size: 0.85rem;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 12px 0;
+      }
+      .box {
+        border-radius: var(--radius);
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .box h4 {
+        margin: 0 0 6px;
+        font-size: 0.92rem;
+      }
+      .box ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 0.93rem;
+      }
+      .box.yes {
+        border-top: 3px solid var(--ok);
+      }
+      .box.no {
+        border-top: 3px solid var(--bad);
+      }
+      .callout {
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 14px 0;
+        font-size: 0.95rem;
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .callout.tip {
+        background: var(--accent-soft);
+        border-left: 4px solid var(--accent);
+      }
+      .callout.warn {
+        background: var(--warn-soft);
+        border-left: 4px solid var(--warn);
+      }
+      .callout.bad {
+        background: var(--bad-soft);
+        border-left: 4px solid var(--bad);
+      }
+      .callout.good {
+        background: var(--ok-soft);
+        border-left: 4px solid var(--ok);
+      }
+      pre.code {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 10px 0 14px;
+      }
+      .code-label {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin: 12px 0 -6px;
+        font-family: ui-monospace, Menlo, monospace;
+      }
+      .tok-k {
+        color: var(--tok-k);
+      }
+      .tok-s {
+        color: var(--tok-s);
+      }
+      .tok-c {
+        color: var(--tok-c);
+        font-style: italic;
+      }
+      ol.steps {
+        padding-left: 22px;
+      }
+      ol.steps li {
+        margin-bottom: 6px;
+      }
+      .decision {
+        display: grid;
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .decision .q {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .decision .n {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--surface);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+      .decision .a {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      /* Quiz */
+      .quiz {
+        margin: 26px 0 0;
+        border-top: 1px solid var(--border);
+        padding-top: 6px;
+      }
+      .question {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px 16px;
+        margin: 12px 0;
+      }
+      .question > p {
+        margin: 0 0 10px;
+        font-weight: 600;
+      }
+      .opts {
+        display: grid;
+        gap: 6px;
+      }
+      .opts button {
+        text-align: left;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 0.93rem;
+        cursor: pointer;
+      }
+      .opts button.right {
+        border-color: var(--ok);
+        background: var(--ok-soft);
+      }
+      .opts button.wrong {
+        border-color: var(--bad);
+        background: var(--bad-soft);
+      }
+      .why {
+        margin: 10px 0 0;
+        font-size: 0.92rem;
+      }
+      .why.right {
+        color: var(--ok);
+      }
+      .why.wrong {
+        color: var(--bad);
+      }
+      .why span {
+        color: var(--text);
+      }
+      details {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin: 10px 0;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .task {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        margin: 6px 0;
+      }
+      .task input {
+        margin-top: 5px;
+      }
+      /* Clasificador */
+      .game {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px;
+        margin: 14px 0;
+      }
+      .game .item {
+        font-size: 1.05rem;
+        font-weight: 600;
+        background: var(--surface-2);
+        border-radius: 8px;
+        padding: 12px 14px;
+        margin: 8px 0 12px;
+      }
+      .game .count {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .targets {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 6px;
+      }
+      .targets button {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font: inherit;
+        font-size: 0.88rem;
+        text-align: left;
+        cursor: pointer;
+      }
+      .targets button.right {
+        border-color: var(--ok);
+        background: var(--ok-soft);
+      }
+      .targets button.wrong {
+        border-color: var(--bad);
+        background: var(--bad-soft);
+      }
+      .targets button:disabled {
+        cursor: default;
+      }
+      .game-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 36px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 9px 16px;
+        font: inherit;
+        font-size: 0.93rem;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--surface);
+        font-weight: 600;
+      }
+      .btn.done {
+        background: var(--ok-soft);
+        border-color: var(--ok);
+        color: var(--ok);
+        font-weight: 600;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .tree {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 0.86rem;
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        white-space: pre;
+        overflow-x: auto;
+        line-height: 1.55;
+      }
+      @media (max-width: 860px) {
+        .layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        aside.side {
+          position: fixed;
+          inset: 0 30% 0 0;
+          min-width: 260px;
+          z-index: 20;
+          transform: translateX(-105%);
+          transition: transform 0.2s;
+          box-shadow: 0 0 0 100vmax transparent;
+        }
+        aside.side.open {
+          transform: none;
+          box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.35);
+        }
+        .mobile-bar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: var(--surface);
+          border-bottom: 1px solid var(--border);
+          padding: 10px 16px;
+          font-size: 0.92rem;
+        }
+        .mobile-bar .title {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        main {
+          padding: 22px 16px 60px;
+        }
+        h1 {
+          font-size: 1.5rem;
+        }
+        .two {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mobile-bar">
+      <button class="btn" id="open-toc" type="button" aria-controls="side">☰ Lecciones</button>
+      <span class="title" id="mobile-title"></span>
+    </div>
+    <div class="layout">
+      <aside class="side" id="side">
+        <div class="brand">Curso del monorepo</div>
+        <div class="brand-sub">qa-monorepo, carpeta por carpeta</div>
+        <div class="progress">
+          <div class="bar"><span id="bar"></span></div>
+          <small id="progress-text"></small>
+        </div>
+        <ul class="toc" id="toc"></ul>
+        <div class="side-links">
+          <a href="flujo.html">Flujo interactivo →</a>
+          <a href="../README.md">README del repo →</a>
+          <a href="../CONTRIBUTING.md">Guía de contribución →</a>
+        </div>
+        <button class="theme-btn" id="theme" type="button">Tema</button>
+      </aside>
+
+      <main id="main">
+        <!-- ===================== 0 ===================== -->
+        <section class="lesson" data-part="Empezar" data-title="Bienvenida">
+          <p class="kicker">Lección 0</p>
+          <h1>Bienvenida</h1>
+          <p>
+            Este curso explica cómo está organizado qa-monorepo: qué hace cada carpeta, qué se pone
+            dentro de cada una y, sobre todo, <strong>cómo decidir</strong> dónde va algo nuevo. Al
+            terminarlo vas a poder leer cualquier test del repo y agregar uno sin romper sus reglas.
+          </p>
+          <div class="summary">
+            <strong>Al terminar vas a saber</strong>
+            <ul>
+              <li>Por qué un test está repartido en capas y qué gana el repo con eso.</li>
+              <li>
+                Qué va y qué no va en <code>test-data</code>, <code>pages</code>,
+                <code>components</code>, <code>api</code>, <code>steps</code>,
+                <code>fixtures</code> y los specs.
+              </li>
+              <li>
+                Por qué los datos están fuera del código y cuándo un dato se queda en el test.
+              </li>
+              <li>Qué revisan ESLint, TypeScript, Turbo y el CI, y cómo leer sus errores.</li>
+              <li>Cómo agregar un escenario, un ambiente y un endpoint de punta a punta.</li>
+            </ul>
+          </div>
+          <h2>Cómo usar el curso</h2>
+          <ul>
+            <li>
+              Ve en orden: las lecciones 3 a 9 recorren las capas de abajo hacia arriba, y cada una
+              se apoya en la anterior.
+            </li>
+            <li>
+              Cada lección termina con preguntas. Al responderlas ves por qué cada opción es
+              correcta o no.
+            </li>
+            <li>
+              Marca la lección como completada al final. Tu progreso se guarda en este navegador.
+            </li>
+            <li>Ten el repo abierto al lado: todos los ejemplos son archivos reales.</li>
+          </ul>
+          <h2>Antes de empezar</h2>
+          <ol class="steps">
+            <li>Instala el repo siguiendo <a href="../README.md#instalación">el README</a>.</li>
+            <li>
+              Corre <code>pnpm turbo run test:e2e --filter=restful-booker-api</code> para ver una
+              corrida real.
+            </li>
+            <li>
+              Abre <a href="flujo.html">flujo.html</a> y recorre el test web paso a paso: es el mapa
+              de este curso.
+            </li>
+          </ol>
+          <div class="callout tip">
+            <strong>Los cuatro productos de práctica</strong>
+            the-internet y Sauce Demo (web), Restful Booker (API) y My Demo App (Android). Son
+            sitios y apps públicos hechos para practicar QA; sus credenciales son públicas.
+          </div>
+        </section>
+
+        <!-- ===================== 1 ===================== -->
+        <section class="lesson" data-part="Empezar" data-title="El problema que resuelve">
+          <p class="kicker">Lección 1</p>
+          <h1>El problema: un test que se rompe por todo</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Por qué un test escrito “todo junto” es frágil.</li>
+              <li>La idea central del repo: separar por <em>motivo de cambio</em>.</li>
+              <li>La pregunta que vas a usar en todo el curso.</li>
+            </ul>
+          </div>
+          <p>
+            Así se escribe un test cuando todo va en el mismo archivo.
+            <strong>Este repo no está escrito así</strong>; es el punto de partida para entender por
+            qué:
+          </p>
+          <p class="code-label">un test “todo en uno” (contraejemplo)</p>
+          <pre class="code" data-src="l1-bad"></pre>
+          <p>Ese archivo tiene que cambiar por cuatro motivos distintos:</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Si cambia…</th>
+                  <th>hay que editar…</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>el ambiente (staging tiene otra URL)</td>
+                  <td>cada test que tenga la URL</td>
+                </tr>
+                <tr>
+                  <td>el HTML (el botón cambia de id)</td>
+                  <td>cada test que haga login</td>
+                </tr>
+                <tr>
+                  <td>la contraseña</td>
+                  <td>cada test… y queda escrita en el repo</td>
+                </tr>
+                <tr>
+                  <td>el proceso (el login pide un código extra)</td>
+                  <td>cada test que haga login</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            Con 50 tests, un cambio de HTML significa 50 archivos. La solución del repo es darle a
+            cada motivo de cambio <strong>un solo lugar</strong>:
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Motivo de cambio</th>
+                  <th>Lugar único</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ambiente, usuarios, textos esperados</td>
+                  <td><code>libs/test-data</code></td>
+                </tr>
+                <tr>
+                  <td>Contraseñas y tokens reales</td>
+                  <td>secretos del CI, como <code>${VAR}</code></td>
+                </tr>
+                <tr>
+                  <td>HTML de una pantalla</td>
+                  <td><code>libs/pages</code></td>
+                </tr>
+                <tr>
+                  <td>Un bloque que se repite en pantallas</td>
+                  <td><code>libs/components</code></td>
+                </tr>
+                <tr>
+                  <td>Endpoints de la API</td>
+                  <td><code>libs/api</code></td>
+                </tr>
+                <tr>
+                  <td>Pasos de un proceso de negocio</td>
+                  <td><code>libs/steps</code></td>
+                </tr>
+                <tr>
+                  <td>Qué es un resultado correcto</td>
+                  <td>el spec, en <code>apps/</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>El mismo test, como está en el repo:</p>
+          <p class="code-label">apps/saucedemo-e2e/checkout.spec.ts</p>
+          <pre class="code" data-src="l1-good"></pre>
+          <div class="callout tip">
+            <strong>La pregunta del curso</strong>
+            Cada vez que no sepas dónde va algo, pregúntate:
+            <em>¿qué cambio me obligaría a editar esto?</em> La respuesta te dice la carpeta.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Sauce Demo cambia el <code>data-test</code> del botón de login. ¿Cuántos archivos
+                del repo hay que editar?
+              </p>
+              <div class="opts">
+                <button data-why="Los specs no conocen selectores; ninguno cambia.">
+                  Todos los specs que hacen login
+                </button>
+                <button
+                  data-ok
+                  data-why="Solo libs/pages/saucedemo/login.page.ts: es el único que sabe dónde está el botón."
+                >
+                  Uno: el page del login
+                </button>
+                <button data-why="Los datos no tienen selectores; no cambian.">
+                  El page y los archivos de datos
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>
+                El login ahora pide un código de verificación después de la contraseña. ¿Qué se
+                edita?
+              </p>
+              <div class="opts">
+                <button
+                  data-why="Los specs solo dicen auth.loginAs(rol); no saben cómo se hace el login."
+                >
+                  Cada spec que hace login
+                </button>
+                <button
+                  data-ok
+                  data-why="El page agrega el campo nuevo y el step agrega el paso. Si el código depende del ambiente, también los datos."
+                >
+                  El page del login y el step <code>loginAs</code>
+                </button>
+                <button data-why="La configuración no sabe nada del login.">
+                  La configuración de Playwright
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 2 ===================== -->
+        <section class="lesson" data-part="Empezar" data-title="Mapa del repositorio">
+          <p class="kicker">Lección 2</p>
+          <h1>Mapa del repositorio</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>
+                Qué hay en <code>apps/</code>, <code>libs/</code>, <code>tests-of-layers/</code>,
+                <code>ci/</code> y <code>docs/</code>.
+              </li>
+              <li>Qué hace cada archivo de la raíz.</li>
+              <li>Cómo se importa una capa (<code>pages/saucedemo</code>).</li>
+            </ul>
+          </div>
+          <pre class="tree">
+apps/                    una app por producto: specs + su configuración
+  the-internet-e2e/      web (Playwright)
+  saucedemo-e2e/         web (Playwright)
+  restful-booker-api/    API (Playwright request)
+  my-demo-app-e2e/       Android (WebdriverIO + Appium)
+libs/                    las capas, compartidas por todas las apps
+  test-data/             datos por producto y ambiente
+  pages/                 page objects y screens
+  components/            bloques que se repiten
+  api/                   clientes de API y contratos
+  steps/                 acciones de negocio
+  fixtures/              conectan todo para cada test
+  utils/                 configuración base de Playwright
+tests-of-layers/         pruebas de las capas, sin navegador
+ci/circleci/             pipeline
+docs/                    este curso y el flujo interactivo</pre>
+          <h2>Una carpeta por producto en cada capa</h2>
+          <p>
+            Cada capa se divide por producto con el mismo nombre: <code>libs/pages/saucedemo</code>,
+            <code>libs/steps/saucedemo</code>, <code>libs/test-data/saucedemo</code>. Así, para
+            encontrar algo de Sauce Demo, siempre buscas la carpeta <code>saucedemo</code> dentro de
+            la capa.
+          </p>
+          <h2>Cómo se importa</h2>
+          <p>
+            Gracias a los alias de <code>tsconfig.base.json</code>, una capa se importa por su
+            nombre y el producto:
+          </p>
+          <pre class="code" data-src="l2-imports"></pre>
+          <p>
+            Cada carpeta de <code>libs/</code> es un paquete del workspace de pnpm con su propio
+            <code>package.json</code>, <code>tsconfig.json</code> y tareas <code>lint</code> y
+            <code>typecheck</code>.
+          </p>
+          <h2>Los archivos de la raíz</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Archivo</th>
+                  <th>Para qué sirve</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>package.json</code></td>
+                  <td>
+                    Los comandos (<code>pnpm lint</code>, <code>pnpm test:e2e</code>…), la versión
+                    de pnpm y lint-staged
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>pnpm-workspace.yaml</code></td>
+                  <td>Qué carpetas son paquetes y el catálogo de versiones compartidas</td>
+                </tr>
+                <tr>
+                  <td><code>turbo.json</code></td>
+                  <td>Las tareas, su orden, la caché y qué variables de entorno pasan</td>
+                </tr>
+                <tr>
+                  <td><code>tsconfig.base.json</code></td>
+                  <td>TypeScript estricto y los alias de importación</td>
+                </tr>
+                <tr>
+                  <td><code>eslint.config.mjs</code></td>
+                  <td>Las reglas de capas</td>
+                </tr>
+                <tr>
+                  <td><code>.husky/pre-commit</code></td>
+                  <td>Revisa y formatea antes de cada commit</td>
+                </tr>
+                <tr>
+                  <td><code>.prettierrc</code>, <code>.editorconfig</code>, <code>.nvmrc</code></td>
+                  <td>Formato, estilo del editor y versión de Node</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout tip">
+            <strong>Cada carpeta tiene su README</strong>
+            Con su propósito, sus reglas, un ejemplo y dónde están sus pruebas. Este curso los
+            resume y los conecta.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>¿Dónde está el page del carrito de Sauce Demo?</p>
+              <div class="opts">
+                <button data-why="apps/ solo tiene specs y configuración.">
+                  apps/saucedemo-e2e/cart.page.ts
+                </button>
+                <button
+                  data-ok
+                  data-why="Capa pages, subcarpeta del producto, un archivo por pantalla."
+                >
+                  libs/pages/saucedemo/cart.page.ts
+                </button>
+                <button
+                  data-why="components es para bloques que usan 2 o más pantallas; el carrito es una pantalla."
+                >
+                  libs/components/saucedemo/cart.component.ts
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>¿Qué archivo dice que los tests e2e corren después del <code>typecheck</code>?</p>
+              <div class="opts">
+                <button data-why="package.json solo dice que test:e2e es turbo run test:e2e.">
+                  package.json
+                </button>
+                <button
+                  data-why="Cada app tiene su config de Playwright, pero no el orden de las tareas."
+                >
+                  playwright.config.ts
+                </button>
+                <button data-ok data-why='turbo.json: "test:e2e": { "dependsOn": ["^typecheck"] }.'>
+                  turbo.json
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 3 ===================== -->
+        <section
+          class="lesson"
+          data-part="Las capas"
+          data-title="test-data: los datos fuera del código"
+        >
+          <p class="kicker">Lección 3 · libs/test-data</p>
+          <h1>test-data: los datos fuera del código</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué es un ambiente y qué es <code>common/</code>.</li>
+              <li>Cómo se cargan, combinan y validan los datos.</li>
+              <li>Por qué externalizar los datos y cuánto cuesta.</li>
+              <li>Cómo decidir dónde va un dato nuevo.</li>
+            </ul>
+          </div>
+          <h2>Qué hay dentro</h2>
+          <pre class="tree">
+libs/test-data/
+  schema.ts                         el esquema Zod: qué claves y tipos se permiten
+  loader.ts                         loadEnvironment(producto, ambiente)
+  saucedemo/
+    environments/public-demo.json   lo que cambia por ambiente: baseUrl, users
+    common/messages.json            lo que es igual en todos los ambientes
+    common/products.json
+    common/customers.json</pre>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>URLs de cada ambiente</li>
+                <li>Usuarios por rol (<code>standard</code>, <code>lockedOut</code>)</li>
+                <li>Textos esperados (<code>messages.json</code>)</li>
+                <li>Catálogos: productos, clientes, reservas de ejemplo</li>
+                <li>Referencias a secretos: <code>${STAGING_STANDARD_PASSWORD}</code></li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li>Contraseñas o tokens reales (fuera de las demos públicas)</li>
+                <li>Selectores o lógica</li>
+                <li>El valor que <em>es</em> el escenario (un campo vacío para probar un error)</li>
+                <li>Datos que crea el test al correr (el id de una reserva nueva)</li>
+              </ul>
+            </div>
+          </div>
+          <h2>environments/ o common/</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th><code>environments/&lt;ambiente&gt;.json</code></th>
+                  <th><code>common/&lt;dominio&gt;.json</code></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Qué guarda</td>
+                  <td>Lo que cambia entre ambientes</td>
+                  <td>Lo que es igual en todos</td>
+                </tr>
+                <tr>
+                  <td>Ejemplos</td>
+                  <td><code>baseUrl</code>, <code>users</code></td>
+                  <td>
+                    <code>messages</code>, <code>products</code>, <code>customers</code>,
+                    <code>bookings</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Nombre del archivo</td>
+                  <td>el ambiente: <code>staging.json</code></td>
+                  <td>el dominio: <code>products.json</code> → <code>env.products</code></td>
+                </tr>
+                <tr>
+                  <td>Si una clave está en los dos</td>
+                  <td colspan="2">gana el ambiente</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2>Cómo se carga</h2>
+          <p>
+            La fixture <code>env</code> llama una vez por worker a
+            <code>loadEnvironment(producto)</code>, que hace cuatro cosas:
+          </p>
+          <ol class="steps">
+            <li>
+              Elige <code>environments/&lt;TEST_ENV&gt;.json</code> (por defecto
+              <code>public-demo</code>). Si no existe, falla con la lista de los que hay.
+            </li>
+            <li>Lee cada archivo de <code>common/</code>; el nombre del archivo es la clave.</li>
+            <li>
+              Le aplica encima el ambiente y reemplaza cada <code>${VAR}</code> por su variable de
+              entorno. Si falta, falla con el nombre de la variable, nunca con su valor.
+            </li>
+            <li>
+              Valida todo con el esquema. Es estricto: una clave que no existe en el esquema, como
+              un <code>common/costumers.json</code> mal escrito, falla en vez de ignorarse.
+            </li>
+          </ol>
+          <p>
+            Prueba cada caso en el
+            <a href="flujo.html">simulador de datos de flujo.html</a> (pestaña “Los datos”).
+          </p>
+          <h2>Por qué externalizar los datos</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Beneficio</th>
+                  <th>Ejemplo en el repo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Cambiar de ambiente sin tocar código</strong></td>
+                  <td>
+                    <code>TEST_ENV=staging pnpm test:e2e</code> usa otra URL y otros usuarios con
+                    los mismos specs.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Un cambio, un solo lugar</strong></td>
+                  <td>
+                    Si cambia <em>Thank you for your order!</em>, se edita
+                    <code>common/messages.json</code>, no cada spec.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Secretos fuera del repo</strong></td>
+                  <td>
+                    El JSON dice <code>${STAGING_STANDARD_PASSWORD}</code>; el valor llega del CI.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Errores antes de empezar</strong></td>
+                  <td>
+                    Una URL mal escrita falla al cargar, en milisegundos, con un mensaje claro.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Specs que se leen como negocio</strong></td>
+                  <td>
+                    <code>auth.loginAs("lockedOut")</code> en vez de
+                    <code>"locked_out_user"</code> y <code>"secret_sauce"</code>.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Capas que se prueban solas</strong></td>
+                  <td>
+                    Pages y steps reciben datos por parámetro; <code>tests-of-layers</code> les pasa
+                    datos inventados.
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Lo mismo para web, API y móvil</strong></td>
+                  <td>Los cuatro productos usan el mismo cargador.</td>
+                </tr>
+                <tr>
+                  <td><strong>Revisable por cualquiera</strong></td>
+                  <td>Alguien que no programa puede revisar o proponer datos en un JSON.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>El costo</strong>
+            Hay una indirección más: para saber qué es <code>env.products.backpack</code> abres el
+            JSON. Y los datos crean acoplamientos: el test de orden de
+            <code>inventory.spec.ts</code> espera exactamente los precios de
+            <code>common/products.json</code>, así que ese archivo debe tener el catálogo completo.
+          </div>
+          <h2>Cómo decidir dónde va un dato</h2>
+          <div class="decision">
+            <div class="q">
+              <span class="n">1</span>
+              <div>
+                ¿El valor <strong>es</strong> el escenario que pruebas?
+                <div class="a">
+                  Sí → se queda en el spec. Ejemplo:
+                  <code>{ ...env.customers.standard, firstName: "" }</code> en “sin nombre no
+                  avanza”.
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">2</span>
+              <div>
+                ¿Es un secreto real?
+                <div class="a">
+                  Sí → <code>${VAR}</code> en el ambiente, el valor en el context
+                  <code>qa-e2e</code> del CI y la variable en <code>passThroughEnv</code> de
+                  <code>turbo.json</code>.
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">3</span>
+              <div>
+                ¿Cambia según el ambiente?
+                <div class="a">Sí → <code>environments/&lt;ambiente&gt;.json</code>.</div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">4</span>
+              <div>
+                ¿Es igual en todos los ambientes?
+                <div class="a">
+                  Sí → <code>common/&lt;dominio&gt;.json</code>, con nombre de dominio
+                  (<code>products.json</code>), nunca de uso (<code>checkout-data.json</code>).
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">5</span>
+              <div>
+                ¿Es un tipo de dato nuevo (direcciones, tarjetas de prueba)?
+                <div class="a">
+                  Agrega la clave y su forma a <code>schema.ts</code>; si no, el esquema estricto lo
+                  rechaza.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                En staging, el título del inventario dice “Productos” en vez de “Products”. ¿Dónde
+                lo pones?
+              </p>
+              <div class="opts">
+                <button
+                  data-why="Cambiaría el texto para todos los ambientes, incluido public-demo."
+                >
+                  En <code>common/messages.json</code>
+                </button>
+                <button
+                  data-ok
+                  data-why='En environments/staging.json, dentro de "messages". Si una clave está en los dos, gana el ambiente.'
+                >
+                  En <code>environments/staging.json</code>, como
+                  <code>messages.inventoryTitle</code>
+                </button>
+                <button data-why="Los specs no tienen textos escritos; los toman de env.messages.">
+                  En el spec, con un if por ambiente
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>Necesitas varias direcciones de envío para probar el checkout. ¿Qué haces?</p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Es un tipo nuevo: va en el esquema (si no, el esquema estricto lo rechaza) y en common/addresses.json, con nombre de dominio."
+                >
+                  Agregar <code>addresses</code> a <code>schema.ts</code> y crear
+                  <code>common/addresses.json</code>
+                </button>
+                <button
+                  data-why="Nombrado por uso, y el esquema estricto lo rechazaría por ser una clave desconocida."
+                >
+                  Crear <code>common/checkout-test-data.json</code>
+                </button>
+                <button data-why="Los datos del dominio no se escriben en los specs.">
+                  Escribirlas en el spec
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>
+                Un test crea una reserva por API y usa su id. ¿Ese id va en <code>test-data</code>?
+              </p>
+              <div class="opts">
+                <button data-why="El id cambia en cada corrida; no hay un valor fijo que guardar.">
+                  Sí, en <code>common/bookings.json</code>
+                </button>
+                <button
+                  data-ok
+                  data-why="Lo crea el test al correr (bookings.create devuelve el id). Los datos de entrada sí salen de test-data."
+                >
+                  No: lo devuelve el step al crear la reserva
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 4 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="pages: una clase por pantalla">
+          <p class="kicker">Lección 4 · libs/pages</p>
+          <h1>pages: una clase por pantalla</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué es un page object y qué no debe hacer.</li>
+              <li>Cómo elegir un selector que no se rompa.</li>
+              <li>Las screens de Android.</li>
+            </ul>
+          </div>
+          <p>
+            Un page object
+            <strong>sabe dónde están los elementos de una pantalla y cómo se usan</strong>. No sabe
+            qué datos usar ni qué resultado esperar.
+          </p>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>Locators como propiedades <code>readonly</code> con nombre de lo que son</li>
+                <li>Acciones básicas: <code>fillUsername</code>, <code>submit</code></li>
+                <li>Acciones compuestas de esa pantalla: <code>login</code></li>
+                <li><code>goto()</code> con ruta relativa</li>
+                <li>
+                  Detalles propios de la pantalla, como armar el <code>data-test</code> de un botón
+                </li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li><code>expect</code> (ESLint lo prohíbe)</li>
+                <li>Datos: usuarios, textos esperados</li>
+                <li>Flujos que cruzan pantallas (eso es un step)</li>
+                <li>Esperas fijas (<code>waitForTimeout</code>)</li>
+                <li>
+                  Imports de <code>steps</code>, <code>fixtures</code>, <code>api</code> o
+                  <code>test-data</code>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p class="code-label">libs/pages/saucedemo/login.page.ts</p>
+          <pre class="code" data-src="l4-page"></pre>
+          <h2>Elegir el selector</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Selector</th>
+                  <th>Por qué</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td><code>getByRole("button", { name: "Login" })</code></td>
+                  <td>Es lo que ve el usuario y lo que usa un lector de pantalla</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td><code>getByLabel("Username")</code></td>
+                  <td>Para campos con etiqueta</td>
+                </tr>
+                <tr>
+                  <td>3</td>
+                  <td><code>getByTestId("login-button")</code></td>
+                  <td>Un atributo acordado con desarrollo, que no cambia con el diseño</td>
+                </tr>
+                <tr>
+                  <td>último</td>
+                  <td><code>locator("[data-alert]")</code></td>
+                  <td>Solo si la app no ofrece otra cosa, con un comentario que lo explique</td>
+                </tr>
+                <tr>
+                  <td>nunca</td>
+                  <td><code>div &gt; form &gt; input:nth-child(3)</code></td>
+                  <td>Se rompe con cualquier cambio de diseño</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2>Móvil: screens</h2>
+          <p>
+            En Android, cada pantalla es <code>&lt;pantalla&gt;.screen.ts</code> y sus elementos son
+            <em>getters</em>, porque WebdriverIO los busca de nuevo cada vez. Se usan accessibility
+            id (<code>~View menu</code>) o resource-id (<code>nameET</code>).
+          </p>
+          <pre class="code" data-src="l4-screen"></pre>
+          <h2>Cómo decidir</h2>
+          <ul>
+            <li>
+              <strong>Una pantalla, un archivo.</strong> Si tiene su propia URL o vista, tiene su
+              page.
+            </li>
+            <li>
+              <strong>Si un bloque aparece en otra pantalla</strong>, no copies los locators: pásalo
+              a <code>components</code> (lección 5).
+            </li>
+            <li>
+              <strong>Si una acción necesita otra pantalla</strong>, ya no es del page: es un step
+              (lección 7).
+            </li>
+          </ul>
+          <div class="callout bad">
+            <strong>Error típico</strong>
+            Poner un <code>expect</code> dentro del page “para asegurarse de que cargó”. El page
+            deja de servir para probar el caso contrario (que <em>no</em> cargue). Expón el locator
+            como propiedad y que el spec decida.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>¿Qué selector usarías para el botón de login de una app propia?</p>
+              <div class="opts">
+                <button data-why="Un id técnico puede cambiar con cualquier refactor del front.">
+                  locator("#btn-1a2b")
+                </button>
+                <button
+                  data-ok
+                  data-why="Primero el rol y el nombre visible; si no alcanza, un data-testid acordado con desarrollo."
+                >
+                  getByRole("button", { name: "Login" }) o un data-testid acordado
+                </button>
+                <button data-why="Una ruta CSS larga se rompe con cualquier cambio de diseño.">
+                  locator("div > form > button:nth-child(3)")
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>
+                <code>LoginPage</code> necesita la contraseña del usuario estándar. ¿De dónde la
+                saca?
+              </p>
+              <div class="opts">
+                <button data-why="ESLint prohíbe que pages importe test-data.">
+                  Importa <code>loadEnvironment</code> de <code>test-data</code>
+                </button>
+                <button
+                  data-ok
+                  data-why="El step la saca del ambiente y se la pasa: login(user.username, user.password)."
+                >
+                  La recibe como parámetro de <code>login(username, password)</code>
+                </button>
+                <button data-why="Nunca: sería una credencial escrita en el código.">
+                  La escribe en el page
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 5 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="components: lo que se repite">
+          <p class="kicker">Lección 5 · libs/components</p>
+          <h1>components: lo que se repite</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Cuándo un bloque merece ser componente.</li>
+              <li>Por qué recibe su contenedor.</li>
+            </ul>
+          </div>
+          <p>
+            Un componente es un bloque de interfaz que aparece en
+            <strong>2 o más pantallas</strong>: un encabezado, un menú, un modal, una tabla. Sus
+            locators viven en un solo lugar y cada page lo usa.
+          </p>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>Bloques usados en 2 o más pantallas</li>
+                <li>
+                  Una clase con métodos de negocio (<code>openCart</code>, <code>logout</code>)
+                </li>
+                <li>
+                  Locators internos <code>private</code>, los útiles para aserciones
+                  <code>readonly</code>
+                </li>
+                <li>En móvil: avisos del sistema que pueden salir en cualquier pantalla</li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li>Un bloque que usa una sola pantalla (se queda en su page)</li>
+                <li><code>expect</code>, datos</li>
+                <li>
+                  Imports de <code>pages</code>, <code>steps</code>, <code>api</code> o
+                  <code>test-data</code>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p class="code-label">libs/components/saucedemo/header.component.ts</p>
+          <pre class="code" data-src="l5-header"></pre>
+          <p>
+            Recibe su contenedor (<code>root</code>) y busca todo dentro de él. Así el mismo
+            componente funciona en cualquier pantalla donde aparezca, y no confunde un botón del
+            encabezado con otro igual en la página.
+          </p>
+          <div class="callout tip">
+            <strong>La regla de 2</strong>
+            No crees un componente “por si acaso”. Mientras lo use una pantalla, el bloque vive en
+            su page; cuando aparece en la segunda, se mueve. Mover es fácil; mantener abstracciones
+            que nadie usa, no.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>Un modal de confirmación aparece solo en el checkout. ¿Dónde van sus locators?</p>
+              <div class="opts">
+                <button data-why="Todavía lo usa una sola pantalla.">
+                  En <code>libs/components/saucedemo</code>
+                </button>
+                <button
+                  data-ok
+                  data-why="Una sola pantalla: sus locators viven en el page del checkout."
+                >
+                  En el page del checkout
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>Ahora el mismo modal aparece también en el carrito. ¿Qué haces?</p>
+              <div class="opts">
+                <button data-why="Copiar locators es justo lo que el componente evita.">
+                  Copiar los locators en el page del carrito
+                </button>
+                <button
+                  data-ok
+                  data-why="Segunda pantalla: se crea el componente, se exporta en su index.ts y los dos pages lo usan."
+                >
+                  Moverlo a un componente que usen los dos pages
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 6 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="api: clientes y contratos">
+          <p class="kicker">Lección 6 · libs/api</p>
+          <h1>api: clientes y contratos</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué es un cliente de API y por qué devuelve la respuesta cruda.</li>
+              <li>Qué es un contrato y por qué se valida.</li>
+            </ul>
+          </div>
+          <p>
+            Es el equivalente de <code>pages</code> para el backend:
+            <strong>sabe qué endpoint llamar y cómo armar la petición</strong>; no decide qué
+            respuesta es correcta.
+          </p>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>Un cliente por recurso: <code>booking.client.ts</code></li>
+                <li>Método, ruta, parámetros y cabeceras de cada endpoint</li>
+                <li>Las rarezas de la API (el token en una cookie)</li>
+                <li>Los contratos Zod en <code>schemas.ts</code></li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li>Decidir si un 403 está bien o mal</li>
+                <li>Datos de prueba (los recibe como parámetro)</li>
+                <li>Preparar datos para un test (eso es un step)</li>
+                <li>Imports de <code>test-data</code>, <code>steps</code> o <code>pages</code></li>
+              </ul>
+            </div>
+          </div>
+          <p class="code-label">libs/api/restful-booker/booking.client.ts</p>
+          <pre class="code" data-src="l6-client"></pre>
+          <h2>Por qué la respuesta cruda</h2>
+          <p>
+            Si el cliente lanzara un error con cada 4xx, no podrías probar que
+            <em>sin token responde 403</em>. Devuelve la respuesta y el spec decide qué estado
+            espera.
+          </p>
+          <h2>Contratos</h2>
+          <p>
+            <code>parseBody(respuesta, esquema)</code> lee el JSON y lo valida con Zod antes de
+            usarlo. Si la API quita un campo o cambia un tipo, el test falla ahí con el detalle, y
+            no tres líneas después con un <code>undefined</code>.
+          </p>
+          <pre class="code" data-src="l6-contract"></pre>
+          <div class="callout tip">
+            <strong>Cliente o step</strong>
+            El cliente es <em>un endpoint</em>. Un step de API combina llamadas con un propósito de
+            negocio: <code>auth.tokenFor("admin")</code> pide el token y falla con el motivo;
+            <code>bookings.create(...)</code> crea una reserva y devuelve su id validado.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                La API pasa a pedir el token en la cabecera <code>Authorization</code> en vez de la
+                cookie. ¿Qué se edita?
+              </p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Solo authHeaders en booking.client.ts: la rareza estaba escondida en el cliente."
+                >
+                  Solo el cliente (<code>authHeaders</code>)
+                </button>
+                <button data-why="Los specs pasan el token como argumento; no saben cómo viaja.">
+                  Cada spec que usa un token
+                </button>
+                <button data-why="El step solo obtiene el token; no lo manda.">
+                  El step <code>tokenFor</code>
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>
+                Quieres probar que <code>GET /booking/999999999</code> responde 404. ¿Necesitas un
+                método nuevo en el cliente?
+              </p>
+              <div class="opts">
+                <button data-why="No hace falta: el cliente no decide el resultado.">
+                  Sí, un <code>getMissing()</code> que espere 404
+                </button>
+                <button
+                  data-ok
+                  data-why="bookingApi.get(id) devuelve la respuesta cruda; el spec revisa toBe(404)."
+                >
+                  No: <code>get(id)</code> ya sirve y el spec revisa el 404
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 7 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="steps: acciones de negocio">
+          <p class="kicker">Lección 7 · libs/steps</p>
+          <h1>steps: acciones de negocio</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué es un step y cómo se nombra.</li>
+              <li>La diferencia entre un método de page y un step.</li>
+              <li>Steps para preparar datos.</li>
+            </ul>
+          </div>
+          <p>
+            Un step es una <strong>acción de negocio</strong> que combina pantallas o llamadas:
+            iniciar sesión como un rol, agregar productos al carrito, completar una compra, crear
+            una reserva. El spec las lee como frases.
+          </p>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>Verbos de negocio: <code>loginAs</code>, <code>completeOrder</code></li>
+                <li>Traducir un rol en un usuario del ambiente</li>
+                <li>Recorrer varias pantallas</li>
+                <li>Preparar datos por API (<code>bookings.create</code>)</li>
+                <li>Errores claros con las opciones válidas</li>
+                <li>En móvil: esperar la pantalla siguiente</li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li>
+                  Selectores: <code>getBy*</code>, <code>locator</code>, <code>$</code> (ESLint lo
+                  prohíbe)
+                </li>
+                <li>Aserciones de resultado</li>
+                <li><code>loadEnvironment</code>: el ambiente llega ya cargado</li>
+                <li>Imports de <code>fixtures</code></li>
+                <li>Nombres técnicos: <code>clickSubmit</code></li>
+              </ul>
+            </div>
+          </div>
+          <p class="code-label">libs/steps/saucedemo/checkout.steps.ts</p>
+          <pre class="code" data-src="l7-checkout"></pre>
+          <p>
+            <code>enterCustomerInfo</code> existe aparte para los escenarios de validación: el spec
+            manda un cliente con un campo vacío y revisa el error, sin terminar la compra. Diseña
+            los steps pensando en qué escenarios los van a usar.
+          </p>
+          <h2>¿Método del page o step?</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Si la acción…</th>
+                  <th>es…</th>
+                  <th>Ejemplo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ocurre en una sola pantalla</td>
+                  <td>método del page</td>
+                  <td><code>LoginPage.login(user, pass)</code></td>
+                </tr>
+                <tr>
+                  <td>cruza pantallas</td>
+                  <td>step</td>
+                  <td><code>CheckoutSteps.completeOrder</code></td>
+                </tr>
+                <tr>
+                  <td>traduce un rol o dato del negocio</td>
+                  <td>step</td>
+                  <td><code>AuthSteps.loginAs("standard")</code></td>
+                </tr>
+                <tr>
+                  <td>prepara datos sin interfaz</td>
+                  <td>step</td>
+                  <td><code>BookingSteps.create</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout bad">
+            <strong>Error típico</strong>
+            Un step que termina con <code>expect(...)</code> “para verificar que el login funcionó”.
+            Así ya no sirve para probar el login fallido. El step actúa; el spec revisa.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Necesitas un método que haga clic en “Continue” en la pantalla de datos del cliente.
+                ¿Dónde va?
+              </p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Una sola pantalla y una acción técnica: CheckoutInfoPage.submit()."
+                >
+                  En el page (<code>CheckoutInfoPage</code>)
+                </button>
+                <button data-why="Un clic en una pantalla no es una acción de negocio.">
+                  En un step nuevo, <code>clickContinue</code>
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>Un step necesita el ambiente. ¿Cómo lo obtiene?</p>
+              <div class="opts">
+                <button
+                  data-why="Volvería a leer y validar los archivos, y el step dependería de cómo se cargan."
+                >
+                  Llamando a <code>loadEnvironment()</code> en el método
+                </button>
+                <button data-ok data-why="Las fixtures se lo inyectan: new AuthSteps(page, env).">
+                  Lo recibe en el constructor, desde la fixture
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 8 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="fixtures: donde se conecta todo">
+          <p class="kicker">Lección 8 · libs/fixtures</p>
+          <h1>fixtures: donde se conecta todo</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué es una fixture de Playwright.</li>
+              <li>Qué hace <code>productTest</code>.</li>
+              <li>Cómo se hace lo mismo en móvil.</li>
+            </ul>
+          </div>
+          <p>
+            Una fixture es algo que Playwright <strong>prepara y entrega a cada test</strong>: lo
+            que pides entre <code>{ }</code>. Las fixtures del repo crean los steps y cargan el
+            ambiente, así el spec no construye nada.
+          </p>
+          <p class="code-label">libs/fixtures/base.fixture.ts (resumido)</p>
+          <pre class="code" data-src="l8-base"></pre>
+          <p class="code-label">libs/fixtures/saucedemo/index.ts</p>
+          <pre class="code" data-src="l8-product"></pre>
+          <ul>
+            <li>
+              <strong><code>env</code> tiene <code>scope: "worker"</code></strong
+              >: se carga una vez por proceso de Playwright, no en cada test.
+            </li>
+            <li>
+              <strong><code>baseURL</code></strong> sale del ambiente: por eso los pages navegan con
+              <code>goto("/")</code> y la config de la app no tiene URL.
+            </li>
+            <li>
+              <strong>Los specs importan <code>test</code> y <code>expect</code> de aquí</strong>,
+              nunca de <code>@playwright/test</code> (ESLint lo revisa).
+            </li>
+          </ul>
+          <h2>Móvil: sin fixtures</h2>
+          <p>
+            WebdriverIO no tiene fixtures, así que <code>fixtures/my-demo-app</code> exporta una
+            función que arma lo mismo:
+          </p>
+          <pre class="code" data-src="l8-mobile"></pre>
+          <div class="callout tip">
+            <strong>Cuándo tocar las fixtures</strong>
+            Solo cuando creas una clase nueva de steps o un cliente de API que los specs deben
+            recibir. La lógica no va aquí: las fixtures solo crean objetos y los entregan.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Creaste <code>OrdersSteps</code>. ¿Qué falta para usarlo en un spec como
+                <code>{ orders }</code>?
+              </p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Agregar orders: async ({ page }, use) => { await use(new OrdersSteps(page)); } en fixtures/<producto>/index.ts."
+                >
+                  Registrarlo en <code>fixtures/&lt;producto&gt;/index.ts</code>
+                </button>
+                <button data-why="El spec no crea steps; los recibe.">
+                  Crearlo en el spec con <code>new OrdersSteps(page)</code>
+                </button>
+                <button data-why="La config no sabe de steps.">
+                  Agregarlo a <code>playwright.config.ts</code>
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>¿Por qué <code>env</code> se carga una vez por worker y no en cada test?</p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Los datos del ambiente no cambian entre tests; leer y validar los archivos una vez es suficiente."
+                >
+                  Porque no cambia entre tests
+                </button>
+                <button data-why="No: cada worker tiene su copia, pero ningún test la modifica.">
+                  Para que los tests compartan cambios
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 9 ===================== -->
+        <section class="lesson" data-part="Las capas" data-title="specs: el flujo y lo esperado">
+          <p class="kicker">Lección 9 · apps/&lt;producto&gt;</p>
+          <h1>specs: el flujo y lo que se espera</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Qué decide un spec y qué no escribe nunca.</li>
+              <li>Tablas de casos y bugs conocidos.</li>
+            </ul>
+          </div>
+          <p>
+            El spec es la capa de arriba: <strong>decide el flujo</strong> (con steps)
+            <strong>y qué es correcto</strong> (con aserciones sobre propiedades de los pages). Todo
+            lo demás lo delega.
+          </p>
+          <div class="two">
+            <div class="box yes">
+              <h4>Va aquí</h4>
+              <ul>
+                <li>El orden de los pasos de negocio</li>
+                <li>Las aserciones (<code>expect</code>)</li>
+                <li>El valor que <em>es</em> el escenario (un campo vacío)</li>
+                <li>Tablas de casos con un <code>for</code></li>
+                <li><code>test.fail</code> para bugs conocidos</li>
+              </ul>
+            </div>
+            <div class="box no">
+              <h4>No va aquí</h4>
+              <ul>
+                <li>Selectores (ESLint lo prohíbe)</li>
+                <li>Credenciales y textos esperados escritos</li>
+                <li><code>waitForTimeout</code></li>
+                <li>Depender de otro test o del orden</li>
+                <li>Imports de <code>@playwright/test</code></li>
+              </ul>
+            </div>
+          </div>
+          <h2>Tablas de casos</h2>
+          <p>
+            Cuando varios casos tienen el mismo flujo, se escriben como datos y un <code>for</code>:
+          </p>
+          <p class="code-label">apps/saucedemo-e2e/login.spec.ts</p>
+          <pre class="code" data-src="l9-table"></pre>
+          <h2>Bugs conocidos</h2>
+          <p>
+            El test describe el comportamiento <em>correcto</em> y se marca con
+            <code>test.fail</code>:
+          </p>
+          <pre class="code" data-src="l9-fail"></pre>
+          <ul>
+            <li>
+              Mientras el bug exista, el test falla y Playwright lo cuenta como correcto (en la
+              consola sale <code>✘</code>, pero el resumen dice <code>passed</code>).
+            </li>
+            <li>
+              Si el bug se arregla, el test pasa y Playwright lo marca como fallido: es la señal
+              para quitar el <code>test.fail</code>.
+            </li>
+            <li>
+              Revisa en el reporte que falle por la aserción esperada y no por un selector roto.
+            </li>
+          </ul>
+          <h2>Aserciones web-first</h2>
+          <p>
+            <code>await expect(locator).toHaveText(...)</code> reintenta sola hasta que se cumple o
+            vence el tiempo. Para una app lenta se sube el timeout de esa aserción, nunca se agrega
+            una espera fija:
+          </p>
+          <pre class="code" data-src="l9-slow"></pre>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Un test con <code>test.fail</code> empieza a salir como fallido en el reporte. ¿Qué
+                significa?
+              </p>
+              <div class="opts">
+                <button
+                  data-why="Al revés: test.fail espera que falle. Si pasa, se marca como fallido."
+                >
+                  Que el bug empeoró
+                </button>
+                <button
+                  data-ok
+                  data-why="El comportamiento correcto ya funciona: hay que quitar el test.fail."
+                >
+                  Que el bug se arregló y hay que quitar el <code>test.fail</code>
+                </button>
+              </div>
+            </div>
+            <div class="question">
+              <p>
+                El usuario <code>performanceGlitch</code> tarda unos 5 segundos en entrar. ¿Cómo lo
+                esperas?
+              </p>
+              <div class="opts">
+                <button data-why="ESLint lo prohíbe y hace los tests lentos e inestables.">
+                  page.waitForTimeout(5000)
+                </button>
+                <button
+                  data-ok
+                  data-why="La aserción reintenta sola hasta 15 s y termina en cuanto el título aparece."
+                >
+                  Con <code>timeout: 15_000</code> en la aserción
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 10 ===================== -->
+        <section
+          class="lesson"
+          data-part="Lo que te cuida"
+          data-title="tests-of-layers: probar las piezas"
+        >
+          <p class="kicker">Lección 10 · tests-of-layers</p>
+          <h1>tests-of-layers: probar las piezas</h1>
+          <div class="summary">
+            <strong>En esta lección</strong>
+            <ul>
+              <li>Por qué probar las capas por separado.</li>
+              <li>Cómo funciona la page simulada.</li>
+            </ul>
+          </div>
+          <p>
+            Son 29 pruebas que revisan cada capa <strong>sin navegador ni red</strong>. Corren en
+            segundos y en CI van antes de los e2e: si un step cambió el orden de sus pasos, falla
+            aquí con un mensaje claro y no a mitad de una compra en Chrome.
+          </p>
+          <p class="code-label">tests-of-layers/steps/saucedemo/checkout.steps.test.ts</p>
+          <pre class="code" data-src="l10-fake"></pre>
+          <p>
+            <code>createFakePage()</code> imita lo que usan pages y steps (<code>getByTestId</code>,
+            <code>fill</code>, <code>click</code>…) y guarda cada acción como texto.
+            <code>createFakeRequest()</code> hace lo mismo con las llamadas a la API.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Carpeta</th>
+                  <th>Qué revisa</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>test-data/</code></td>
+                  <td>
+                    Los datos reales cargan; un esquema inválido, una clave desconocida o una
+                    variable que falta fallan con su mensaje
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>pages/</code>, <code>components/</code></td>
+                  <td>Que cada acción toque el locator correcto</td>
+                </tr>
+                <tr>
+                  <td><code>api/</code></td>
+                  <td>Método, URL, cuerpo y cabeceras de cada llamada</td>
+                </tr>
+                <tr>
+                  <td><code>steps/</code></td>
+                  <td>El orden de las acciones y los errores con datos que no existen</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warn">
+            <strong>Importan de @playwright/test</strong>
+            Al revés que los specs: la fixture <code>auth</code> pide la <code>page</code>, y eso
+            abriría un navegador. Aquí se usan datos inventados en la prueba o en
+            <code>test-data/samples/</code>.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Cambiaste el orden de los pasos de <code>completeOrder</code> por error. ¿Dónde lo
+                ves primero?
+              </p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="checkout.steps.test.ts compara la lista exacta de acciones; corre en segundos en test:layers."
+                >
+                  En <code>pnpm test:layers</code>
+                </button>
+                <button
+                  data-why="También fallaría ahí, pero más tarde y con un error menos directo."
+                >
+                  Solo en el e2e de checkout
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 11 ===================== -->
+        <section class="lesson" data-part="Lo que te cuida" data-title="utils y configuración">
+          <p class="kicker">Lección 11 · libs/utils y configs</p>
+          <h1>utils y la configuración</h1>
+          <p>
+            <code>libs/utils</code> guarda lo técnico que no es de negocio. Hoy:
+            <code>basePlaywrightConfig</code> y <code>desktopChromium</code>.
+          </p>
+          <p class="code-label">libs/utils/playwright.base.ts (resumido)</p>
+          <pre class="code" data-src="l11-base"></pre>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Configuración</th>
+                  <th>Dónde</th>
+                  <th>Qué agrega</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Común a todas las apps de Playwright</td>
+                  <td><code>libs/utils/playwright.base.ts</code></td>
+                  <td>Reintentos, workers, reporters, trace, video</td>
+                </tr>
+                <tr>
+                  <td>De una app web</td>
+                  <td><code>apps/&lt;producto&gt;-e2e/playwright.config.ts</code></td>
+                  <td>Navegador y <code>testIdAttribute</code></td>
+                </tr>
+                <tr>
+                  <td>De la app de API</td>
+                  <td><code>apps/restful-booker-api/playwright.config.ts</code></td>
+                  <td>Proyecto sin navegador y cabecera <code>Accept</code></td>
+                </tr>
+                <tr>
+                  <td>De móvil</td>
+                  <td><code>apps/my-demo-app-e2e/wdio.conf.ts</code></td>
+                  <td>Dispositivo, driver, APK, evidencia de fallos</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout tip">
+            <strong>Lo que no va en utils</strong>
+            Nada que conozca una pantalla, un endpoint o un flujo. Los clientes de API tienen su
+            capa (<code>libs/api</code>), y la URL la pone la fixture desde los datos.
+          </div>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Quieres 3 reintentos en CI para todas las apps de Playwright. ¿Dónde lo cambias?
+              </p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="retries: isCI ? 2 : 0 está en la base que extienden todas las apps."
+                >
+                  En <code>libs/utils/playwright.base.ts</code>
+                </button>
+                <button data-why="Funcionaría, pero tendrías que repetirlo en cada app.">
+                  En cada <code>playwright.config.ts</code>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 12 ===================== -->
+        <section
+          class="lesson"
+          data-part="Lo que te cuida"
+          data-title="Las herramientas que te cuidan"
+        >
+          <p class="kicker">Lección 12 · tooling</p>
+          <h1>Las herramientas que te cuidan</h1>
+          <p>
+            Las reglas de las lecciones anteriores no dependen de la buena memoria: varias
+            herramientas las revisan en cada cambio.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Herramienta</th>
+                  <th>Qué revisa</th>
+                  <th>Cuándo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ESLint</td>
+                  <td>
+                    Dirección de capas, selectores fuera de pages, <code>expect</code> fuera de
+                    specs, <code>waitForTimeout</code>
+                  </td>
+                  <td><code>pnpm lint</code>, commit, CI</td>
+                </tr>
+                <tr>
+                  <td>TypeScript estricto</td>
+                  <td>
+                    Que cada capa use bien a las otras (un método que ya no existe, un dato con otro
+                    tipo)
+                  </td>
+                  <td><code>pnpm typecheck</code>, antes de cada test por Turbo</td>
+                </tr>
+                <tr>
+                  <td>Zod</td>
+                  <td>Datos y respuestas de API con la forma correcta</td>
+                  <td>Al cargar datos y en cada <code>parseBody</code></td>
+                </tr>
+                <tr>
+                  <td>Prettier + EditorConfig</td>
+                  <td>Formato igual para todos</td>
+                  <td>Commit, CI</td>
+                </tr>
+                <tr>
+                  <td>Husky + lint-staged</td>
+                  <td>ESLint y Prettier sobre lo que vas a commitear</td>
+                  <td>Cada <code>git commit</code></td>
+                </tr>
+                <tr>
+                  <td>Turbo</td>
+                  <td>Orden de tareas, caché, variables de entorno permitidas</td>
+                  <td>Cada <code>pnpm lint/typecheck/test:*</code></td>
+                </tr>
+                <tr>
+                  <td>pnpm</td>
+                  <td>Versiones compartidas (catálogo) y scripts de instalación bloqueados</td>
+                  <td><code>pnpm install</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <h2>Los errores de ESLint que vas a ver</h2>
+          <pre class="code" data-src="l12-eslint" data-lang="text"></pre>
+          <p>
+            Cuando ESLint dice que una capa no puede importar otra, el código está en la capa
+            equivocada. Revisa dónde va antes de pensar en desactivar la regla. La matriz completa
+            está en <a href="flujo.html">flujo.html</a>, pestaña “Reglas de capas”.
+          </p>
+          <h2>Turbo y las variables de entorno</h2>
+          <p>
+            Turbo funciona en modo estricto: una tarea solo ve las variables declaradas en
+            <code>turbo.json</code>. Si agregas una credencial <code>${VAR}</code>, declárala en
+            <code>passThroughEnv</code> de la tarea; si no, el test dirá que falta aunque la hayas
+            exportado.
+          </p>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>
+                Agregaste <code>STAGING_STANDARD_PASSWORD</code>, la exportaste en tu terminal y
+                <code>pnpm test:e2e</code> dice “Falta la variable de entorno”. ¿Qué pasa?
+              </p>
+              <div class="opts">
+                <button data-why="El nombre está bien; el problema es que Turbo no la deja pasar.">
+                  El nombre de la variable está mal escrito en el JSON
+                </button>
+                <button
+                  data-ok
+                  data-why="Turbo filtra las variables que no están en env o passThroughEnv de la tarea test:e2e."
+                >
+                  Falta declararla en <code>passThroughEnv</code> de <code>turbo.json</code>
+                </button>
+                <button data-why="Las variables no van en la config de Playwright.">
+                  Falta agregarla en <code>playwright.config.ts</code>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 13 ===================== -->
+        <section class="lesson" data-part="Lo que te cuida" data-title="El pipeline de CI">
+          <p class="kicker">Lección 13 · ci/circleci</p>
+          <h1>El pipeline de CI</h1>
+          <div class="callout warn">
+            <strong>Estado</strong>
+            <code>ci/circleci/config.yml</code> está escrito, pero todavía no se ha ejecutado en
+            CircleCI: falta conectar el repositorio.
+          </div>
+          <ol class="steps">
+            <li><strong>lint</strong>: ESLint y Prettier.</li>
+            <li><strong>typecheck</strong>: TypeScript en todos los paquetes.</li>
+            <li><strong>test-layers</strong>: las 29 pruebas de capas.</li>
+            <li>
+              <strong>e2e</strong>: un job por app (the-internet, Sauce Demo, Restful Booker), cada
+              uno repartido en 2 máquinas (shards), con las credenciales del context
+              <code>qa-e2e</code>.
+            </li>
+            <li>
+              <strong>e2e-report</strong>: une los reportes de los shards en un HTML por app. Corre
+              aunque fallen los e2e, para que puedas ver los fallos.
+            </li>
+            <li><strong>Móvil</strong>: pendiente; necesita un emulador Android en CI.</li>
+          </ol>
+          <p>
+            Cada paso solo corre si el anterior pasó: no tiene sentido gastar minutos de e2e si hay
+            un error de tipos. El recorrido interactivo está en <a href="flujo.html">flujo.html</a>,
+            pestaña “El pipeline”.
+          </p>
+          <div class="quiz">
+            <h2>Comprueba</h2>
+            <div class="question">
+              <p>Agregaste una app nueva, <code>apps/orders-e2e</code>. ¿Qué cambias en el CI?</p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Las dos listas app: del workflow, la de e2e y la de e2e-report."
+                >
+                  Agregarla a las dos listas <code>app:</code> del workflow
+                </button>
+                <button
+                  data-why="Turbo la encuentra sola, pero el workflow de CircleCI tiene la lista de apps escrita."
+                >
+                  Nada, Turbo la encuentra sola
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== 14 ===================== -->
+        <section class="lesson" data-part="Practicar" data-title="Cómo analizar dónde va algo">
+          <p class="kicker">Lección 14 · método</p>
+          <h1>Cómo analizar dónde va algo</h1>
+          <p>
+            Antes de escribir código nuevo, pásalo por estas preguntas, en orden. La primera que
+            respondas con “sí” te da la carpeta.
+          </p>
+          <div class="decision">
+            <div class="q">
+              <span class="n">1</span>
+              <div>
+                ¿Decide si algo está bien o mal?
+                <div class="a">→ el spec (<code>expect</code>).</div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">2</span>
+              <div>
+                ¿Es un valor y no una lógica?
+                <div class="a">
+                  → <code>test-data</code> (ambiente o <code>common/</code>), un secreto
+                  <code>${VAR}</code>, o el spec si el valor es el escenario.
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">3</span>
+              <div>
+                ¿Dice dónde está un elemento de la interfaz?
+                <div class="a">
+                  → el page de esa pantalla; si lo usan 2 o más pantallas, <code>components</code>.
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">4</span>
+              <div>
+                ¿Sabe cómo llamar a un endpoint?
+                <div class="a">
+                  → el cliente del recurso en <code>libs/api</code>; la forma de la respuesta, en
+                  <code>schemas.ts</code>.
+                </div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">5</span>
+              <div>
+                ¿Es una acción de negocio que cruza pantallas o prepara datos?
+                <div class="a">→ <code>steps</code>.</div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">6</span>
+              <div>
+                ¿Entrega algo a los tests?
+                <div class="a">→ <code>fixtures</code>.</div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">7</span>
+              <div>
+                ¿Es técnico y común (reintentos, reporters)?
+                <div class="a">→ <code>utils</code>.</div>
+              </div>
+            </div>
+            <div class="q">
+              <span class="n">8</span>
+              <div>
+                ¿Prueba una capa sin navegador?
+                <div class="a">→ <code>tests-of-layers</code>.</div>
+              </div>
+            </div>
+          </div>
+          <h2>Practica: ¿dónde va?</h2>
+          <p>Lee cada elemento y elige su lugar. Vas a ver por qué al responder.</p>
+          <div class="game" id="game"></div>
+        </section>
+
+        <!-- ===================== 15 ===================== -->
+        <section class="lesson" data-part="Practicar" data-title="Práctica guiada">
+          <p class="kicker">Lección 15 · práctica</p>
+          <h1>Práctica guiada: de la idea al test</h1>
+          <p>
+            Tres ejercicios reales. Marca cada paso al hacerlo; la solución está debajo de cada uno.
+          </p>
+
+          <h2>Ejercicio 1 · Un escenario nuevo en Sauce Demo</h2>
+          <p>
+            <strong>Objetivo:</strong> probar que el inventario se ordena por nombre de la Z a la A.
+          </p>
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              ><strong>¿Datos nuevos?</strong> Revisa
+              <code>libs/test-data/saucedemo/common/products.json</code>: ¿ya están los
+              nombres?</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              ><strong>¿El page sabe hacerlo?</strong> Busca en <code>inventory.page.ts</code> un
+              método para ordenar y un locator con los nombres.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              ><strong>¿Hace falta un step?</strong> Piensa: ¿la acción cruza pantallas?</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Escribe el test en <code>apps/saucedemo-e2e/inventory.spec.ts</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Córrelo:
+              <code>pnpm --filter saucedemo-e2e exec playwright test inventory.spec.ts</code></span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Pasa <code>pnpm lint</code> y <code>pnpm typecheck</code>, y agrega el escenario a la
+              tabla del README de la app.</span
+            ></label
+          >
+          <details>
+            <summary>Ver solución</summary>
+            <p>
+              No hacen falta datos ni steps: los nombres están en <code>common/products.json</code>,
+              y ordenar es una acción de una sola pantalla que <code>InventoryPage.sortBy</code> ya
+              tiene. Este test se comprobó contra Sauce Demo y pasa:
+            </p>
+            <pre class="code" data-src="l15-sort"></pre>
+          </details>
+
+          <h2>Ejercicio 2 · Un ambiente nuevo</h2>
+          <p>
+            <strong>Objetivo:</strong> preparar un ambiente <code>staging</code> para Sauce Demo con
+            la contraseña como secreto.
+          </p>
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Crea <code>libs/test-data/saucedemo/environments/staging.json</code> con
+              <code>baseUrl</code> y <code>users</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Escribe la contraseña como <code>${STAGING_STANDARD_PASSWORD}</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Declara la variable en <code>passThroughEnv</code> de <code>test:e2e</code> en
+              <code>turbo.json</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span>Agrega el valor al context <code>qa-e2e</code> de CircleCI.</span></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Corre sin definir la variable y lee el error; luego defínela y corre de nuevo.</span
+            ></label
+          >
+          <details>
+            <summary>Ver solución</summary>
+            <pre class="code" data-src="l15-env"></pre>
+            <p>
+              Sin la variable, la carga falla con
+              <code>Falta la variable de entorno STAGING_STANDARD_PASSWORD.</code>, antes de abrir
+              el navegador. Los specs no cambian.
+            </p>
+          </details>
+
+          <h2>Ejercicio 3 · Un endpoint nuevo</h2>
+          <p>
+            <strong>Objetivo:</strong> probar que <code>GET /ping</code> de Restful Booker responde.
+            (Dato real: responde <code>201 Created</code>, no 200.)
+          </p>
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >¿Es un recurso nuevo? Crea su cliente en <code>libs/api/restful-booker/</code> y
+              expórtalo en su <code>index.ts</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Regístralo como fixture en <code>libs/fixtures/restful-booker/index.ts</code>.</span
+            ></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span>Escribe el spec y explica la rareza en un comentario.</span></label
+          >
+          <label class="task"
+            ><input type="checkbox" />
+            <span
+              >Prueba el cliente en <code>tests-of-layers/api/restful-booker/</code> con
+              <code>createFakeRequest()</code>.</span
+            ></label
+          >
+          <details>
+            <summary>Ver solución</summary>
+            <pre class="code" data-src="l15-api"></pre>
+          </details>
+
+          <div class="callout good">
+            <strong>Terminaste el curso</strong>
+            Ya conoces cada carpeta, sus reglas y cómo decidir. Para seguir: la guía
+            <a href="../CONTRIBUTING.md">CONTRIBUTING.md</a> tiene los pasos para agregar cada tipo
+            de pieza, y cada README de carpeta su detalle.
+          </div>
+        </section>
+
+        <div class="nav">
+          <button class="btn" id="prev" type="button">← Anterior</button>
+          <button class="btn" id="mark" type="button">Marcar como completada</button>
+          <button class="btn primary" id="next" type="button">Siguiente →</button>
+        </div>
+      </main>
+    </div>
+
+    <!-- ============ Código de las lecciones ============ -->
+    <script type="text/plain" data-code="l1-bad">
+      import { test, expect } from "@playwright/test";
+
+      test("compra", async ({ page }) => {
+        await page.goto("https://www.saucedemo.com");
+        await page.locator("#user-name").fill("standard_user");
+        await page.locator("#password").fill("secret_sauce");
+        await page.locator("#login-button").click();
+        await page.locator("#add-to-cart-sauce-labs-backpack").click();
+        await page.locator(".shopping_cart_link").click();
+        await page.locator("#checkout").click();
+        await page.locator("#first-name").fill("Ana");
+        // ...y así hasta el final
+        await expect(page.locator(".complete-header")).toHaveText("Thank you for your order!");
+      });
+    </script>
+    <script type="text/plain" data-code="l1-good">
+      test("compra completa de un producto", async ({ auth, cart, checkout, env, page }) => {
+        await auth.loginAs("standard");
+        await cart.add(env.products.backpack);
+
+        await checkout.completeOrder(env.customers.standard);
+
+        await expect(new CheckoutCompletePage(page).confirmationTitle).toHaveText(
+          env.messages.orderComplete,
+        );
+      });
+    </script>
+    <script type="text/plain" data-code="l2-imports">
+      import { expect, test } from "fixtures/saucedemo";        // libs/fixtures/saucedemo/index.ts
+      import { InventoryPage } from "pages/saucedemo";          // libs/pages/saucedemo/index.ts
+      import { BookingClient } from "api/restful-booker";       // libs/api/restful-booker/index.ts
+      import { loadEnvironment } from "test-data";              // compartido: sin producto
+    </script>
+    <script type="text/plain" data-code="l4-page">
+      export class LoginPage {
+        readonly usernameInput: Locator;
+        readonly passwordInput: Locator;
+        readonly loginButton: Locator;
+        readonly errorMessage: Locator;
+
+        constructor(private readonly page: Page) {
+          this.usernameInput = page.getByTestId("username");
+          this.passwordInput = page.getByTestId("password");
+          this.loginButton = page.getByTestId("login-button");
+          this.errorMessage = page.getByTestId("error");
+        }
+
+        async goto(): Promise<void> {
+          await this.page.goto("/");
+        }
+
+        async fillUsername(username: string): Promise<void> {
+          await this.usernameInput.fill(username);
+        }
+
+        async fillPassword(password: string): Promise<void> {
+          await this.passwordInput.fill(password);
+        }
+
+        async submit(): Promise<void> {
+          await this.loginButton.click();
+        }
+
+        async login(username: string, password: string): Promise<void> {
+          await this.fillUsername(username);
+          await this.fillPassword(password);
+          await this.submit();
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="l4-screen">
+      // libs/pages/my-demo-app/login.screen.ts
+      export class LoginScreen {
+        constructor(private readonly driver: Browser) {}
+
+        get loginButton() {
+          return this.driver.$("~Tap to login with given credentials");   // accessibility id
+        }
+
+        get usernameError() {
+          return this.driver.$(androidId("nameErrorTV"));                  // resource-id
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="l5-header">
+      /** Encabezado con el carrito y el menú lateral. Aparece en el inventario, el carrito y el checkout. */
+      export class Header {
+        readonly cartLink: Locator;
+        readonly cartBadge: Locator;
+        private readonly menuButton: Locator;
+        private readonly logoutLink: Locator;
+
+        constructor(root: Locator) {
+          this.cartLink = root.getByTestId("shopping-cart-link");
+          this.cartBadge = root.getByTestId("shopping-cart-badge");
+          // data-test="open-menu" está en el ícono, debajo del botón real que recibe el clic.
+          this.menuButton = root.getByRole("button", { name: "Open Menu" });
+          this.logoutLink = root.getByTestId("logout-sidebar-link");
+        }
+
+        async openCart(): Promise<void> {
+          await this.cartLink.click();
+        }
+
+        async logout(): Promise<void> {
+          await this.menuButton.click();
+          await this.logoutLink.click();
+        }
+      }
+
+      // En cada page que lo muestra:
+      this.header = new Header(page.getByTestId("header-container"));
+    </script>
+    <script type="text/plain" data-code="l6-client">
+      /** Endpoints de /booking. Devuelve la respuesta cruda: el spec decide qué estado espera. */
+      export class BookingClient {
+        constructor(private readonly request: APIRequestContext) {}
+
+        async get(id: number): Promise<APIResponse> {
+          return this.request.get(`/booking/${id}`);
+        }
+
+        async update(id: number, booking: BookingPayload, token?: string): Promise<APIResponse> {
+          return this.request.put(`/booking/${id}`, { data: booking, headers: authHeaders(token) });
+        }
+      }
+
+      /** Restful Booker recibe el token en una cookie. Sin token, no se manda nada. */
+      function authHeaders(token?: string): Record<string, string> {
+        return token ? { Cookie: `token=${token}` } : {};
+      }
+    </script>
+    <script type="text/plain" data-code="l6-contract">
+      // En el spec
+      const response = await bookingApi.get(bookingid);
+
+      expect(response.status()).toBe(200);
+      expect(await parseBody(response, bookingResponseSchema)).toEqual(env.bookings.withoutDeposit);
+
+      // Si el contrato no se cumple:
+      // La respuesta de https://restful-booker.herokuapp.com/booking/1234 no cumple el contrato: ...
+    </script>
+    <script type="text/plain" data-code="l7-checkout">
+      /** Checkout desde el inventario, con productos ya en el carrito. */
+      export class CheckoutSteps {
+        constructor(private readonly page: Page) {}
+
+        /** Abre el carrito, inicia el checkout y envía los datos del cliente. */
+        async enterCustomerInfo(customer: Customer): Promise<void> {
+          await new InventoryPage(this.page).header.openCart();
+          await new CartPage(this.page).checkout();
+
+          const info = new CheckoutInfoPage(this.page);
+          await info.fill(customer);
+          await info.submit();
+        }
+
+        async completeOrder(customer: Customer): Promise<void> {
+          await this.enterCustomerInfo(customer);
+          await new CheckoutOverviewPage(this.page).finish();
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="l8-base">
+      export function productTest(product: string) {
+        return base.extend<object, ProductWorkerFixtures>({
+          env: [
+            async ({}, use) => {
+              await use(loadEnvironment(product));
+            },
+            { scope: "worker" },
+          ],
+          baseURL: async ({ env }, use) => {
+            if (!env.baseUrl) {
+              throw new Error(`El ambiente de "${product}" no tiene baseUrl.`);
+            }
+            await use(env.baseUrl);
+          },
+        });
+      }
+    </script>
+    <script type="text/plain" data-code="l8-product">
+      export const test = productTest("saucedemo").extend<TestFixtures>({
+        auth: async ({ page, env }, use) => {
+          await use(new AuthSteps(page, env));
+        },
+        cart: async ({ page }, use) => {
+          await use(new CartSteps(page));
+        },
+        checkout: async ({ page }, use) => {
+          await use(new CheckoutSteps(page));
+        },
+      });
+    </script>
+    <script type="text/plain" data-code="l8-mobile">
+      // En el spec de Android
+      const { env, auth, restartApp } = myDemoApp(driver);
+
+      beforeEach(async () => {
+        await restartApp();   // borra los datos de la app y la abre de nuevo
+      });
+    </script>
+    <script type="text/plain" data-code="l9-table">
+      const rejectedLogins = [
+        { scenario: "usuario bloqueado", role: "lockedOut", message: "lockedOut" },
+        { scenario: "contraseña incorrecta", role: "invalid", message: "invalidCredentials" },
+      ];
+
+      for (const { scenario, role, message } of rejectedLogins) {
+        test(`${scenario}: no entra y ve el error`, async ({ auth, env, page }) => {
+          await auth.loginAs(role);
+
+          await expect(new LoginPage(page).errorMessage).toHaveText(env.messages[message]);
+        });
+      }
+    </script>
+    <script type="text/plain" data-code="l9-fail">
+      test("problem_user: algunos productos no se agregan", async ({ auth, cart, env, page }) => {
+        test.fail(true, "Bug conocido de Sauce Demo: con problem_user algunos botones no hacen nada");
+        await auth.loginAs("problem");
+
+        await cart.add(env.products.boltTShirt);
+
+        await expect(new InventoryPage(page).header.cartBadge).toHaveText("1");
+      });
+    </script>
+    <script type="text/plain" data-code="l9-slow">
+      // La app se bloquea unos 5 s al cargar el inventario; la aserción espera sola hasta 15 s.
+      await expect(new InventoryPage(page).title).toHaveText(env.messages.inventoryTitle, {
+        timeout: 15_000,
+      });
+    </script>
+    <script type="text/plain" data-code="l10-fake">
+      test("completeOrder va del carrito a la confirmación con los datos del cliente", async () => {
+        const { page, actions } = createFakePage();
+
+        await new CheckoutSteps(page).completeOrder(customer);
+
+        expect(actions).toEqual([
+          'click testid "header-container" > testid "shopping-cart-link"',
+          'click testid "checkout"',
+          'fill testid "firstName" = Ana',
+          'fill testid "lastName" = Pérez',
+          'fill testid "postalCode" = 28001',
+          'click testid "continue"',
+          'click testid "finish"',
+        ]);
+      });
+    </script>
+    <script type="text/plain" data-code="l11-base">
+      export const basePlaywrightConfig = defineConfig({
+        testMatch: "**/*.spec.ts",
+        fullyParallel: true,
+        forbidOnly: isCI,
+        retries: isCI ? 2 : 0,
+        workers: isCI ? 2 : undefined,
+        reporter: isCI
+          ? [["list"], ["junit", { outputFile: "test-results/junit.xml" }], ["blob"]]
+          : [["list"], ["html", { open: "never" }]],
+        use: {
+          trace: "on-first-retry",
+          screenshot: "only-on-failure",
+          video: "retain-on-failure",
+        },
+      });
+    </script>
+    <script type="text/plain" data-code="l12-eslint">
+      # Un page que importa un step
+      libs/pages/saucedemo/demo.page.ts
+        1:1  error  'steps/saucedemo' import is restricted from being used by a pattern.
+                    Una capa inferior no conoce a la superior
+                    (specs → fixtures → steps → pages | api → components)  no-restricted-imports
+
+      # Un spec que busca un elemento
+      apps/saucedemo-e2e/demo.spec.ts
+        4:9  error  Los selectores van en los page objects  no-restricted-syntax
+    </script>
+    <script type="text/plain" data-code="l15-sort">
+      test("ordena por nombre de la Z a la A", async ({ auth, env, page }) => {
+        await auth.loginAs("standard");
+        const inventory = new InventoryPage(page);
+
+        await inventory.sortBy("Name (Z to A)");
+
+        const expectedNames = Object.values(env.products)
+          .map((product) => product.name)
+          .sort()
+          .reverse();
+        await expect(inventory.itemNames).toHaveText(expectedNames);
+      });
+    </script>
+    <script type="text/plain" data-code="l15-env">
+      // libs/test-data/saucedemo/environments/staging.json
+      {
+        "baseUrl": "https://staging.example.com",
+        "users": {
+          "standard": { "username": "qa.standard", "password": "${STAGING_STANDARD_PASSWORD}" }
+        }
+      }
+
+      // turbo.json
+      "test:e2e": {
+        "env": ["TEST_ENV"],
+        "passThroughEnv": ["STAGING_STANDARD_PASSWORD"],
+        ...
+      }
+
+      // Correr
+      STAGING_STANDARD_PASSWORD=... TEST_ENV=staging pnpm turbo run test:e2e --filter=saucedemo-e2e
+    </script>
+    <script type="text/plain" data-code="l15-api">
+      // libs/api/restful-booker/health.client.ts
+      import type { APIRequestContext, APIResponse } from "@playwright/test";
+
+      /** GET /ping: dice si la API está en línea. */
+      export class HealthClient {
+        constructor(private readonly request: APIRequestContext) {}
+
+        async ping(): Promise<APIResponse> {
+          return this.request.get("/ping");
+        }
+      }
+
+      // libs/fixtures/restful-booker/index.ts
+      healthApi: async ({ request }, use) => {
+        await use(new HealthClient(request));
+      },
+
+      // apps/restful-booker-api/health.spec.ts
+      test("la API responde al ping", async ({ healthApi }) => {
+        const response = await healthApi.ping();
+
+        // La API responde 201 Created en vez de 200: se prueba lo que hace hoy.
+        expect(response.status()).toBe(201);
+      });
+    </script>
+
+    <script>
+      const $ = (s, r = document) => r.querySelector(s);
+      const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const TOKENS =
+        /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(import|from|export|const|let|async|await|return|new|class|constructor|private|readonly|if|throw|for|of|function|interface|type|extends|describe|it|beforeEach|test|expect|get)\b/g;
+      function highlight(src, lang) {
+        if (lang === "text") return esc(src);
+        let out = "";
+        let last = 0;
+        src.replace(TOKENS, (m, comment, str, kw, offset) => {
+          out += esc(src.slice(last, offset));
+          out += `<span class="${comment ? "tok-c" : str ? "tok-s" : "tok-k"}">${esc(m)}</span>`;
+          last = offset + m.length;
+          return m;
+        });
+        return out + esc(src.slice(last));
+      }
+      // Prettier indenta el contenido de los bloques; se quita la sangría común.
+      function dedent(text) {
+        const lines = text.replace(/^\n+|\s+$/g, "").split("\n");
+        const indent = Math.min(
+          ...lines.filter((line) => line.trim()).map((line) => line.match(/^ */)[0].length),
+        );
+        return lines.map((line) => line.slice(indent)).join("\n");
+      }
+      document.querySelectorAll("pre[data-src]").forEach((pre) => {
+        const el = document.querySelector(`script[data-code="${pre.dataset.src}"]`);
+        const src = el ? dedent(el.textContent) : "";
+        pre.innerHTML = `<code>${highlight(src, pre.dataset.lang || "ts")}</code>`;
+      });
+
+      // ---------- Tema ----------
+      const themeBtn = $("#theme");
+      function applyTheme(t) {
+        if (t) document.documentElement.dataset.theme = t;
+        else delete document.documentElement.dataset.theme;
+        const dark = t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches);
+        themeBtn.textContent = dark ? "☀︎ Tema claro" : "☾ Tema oscuro";
+      }
+      const store = {
+        get(k) {
+          try {
+            return localStorage.getItem(k);
+          } catch (e) {
+            return null;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, v);
+          } catch (e) {}
+        },
+      };
+      applyTheme(store.get("qa-docs-theme"));
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () =>
+        applyTheme(document.documentElement.dataset.theme || null),
+      );
+      themeBtn.addEventListener("click", () => {
+        const cur = document.documentElement.dataset.theme;
+        const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        const next = dark ? "light" : "dark";
+        applyTheme(next);
+        store.set("qa-docs-theme", next);
+      });
+
+      // ---------- Lecciones y progreso ----------
+      const lessons = [...document.querySelectorAll(".lesson")];
+      let done = new Set();
+      try {
+        done = new Set(JSON.parse(store.get("qa-curso-progreso") || "[]"));
+      } catch (e) {}
+      let current = 0;
+
+      function renderToc() {
+        const toc = $("#toc");
+        toc.innerHTML = "";
+        let part = "";
+        lessons.forEach((l, i) => {
+          if (l.dataset.part !== part) {
+            part = l.dataset.part;
+            const li = document.createElement("li");
+            li.className = "part";
+            li.textContent = part;
+            toc.appendChild(li);
+          }
+          const li = document.createElement("li");
+          const b = document.createElement("button");
+          b.type = "button";
+          b.setAttribute("aria-current", i === current);
+          b.innerHTML = `<span class="num">${i}</span><span>${l.dataset.title}</span>${done.has(i) ? '<span class="done-mark">✓</span>' : ""}`;
+          b.addEventListener("click", () => {
+            show(i);
+            $("#side").classList.remove("open");
+          });
+          li.appendChild(b);
+          toc.appendChild(li);
+        });
+        const pct = Math.round((done.size / lessons.length) * 100);
+        $("#bar").style.width = pct + "%";
+        $("#progress-text").textContent = `${done.size} de ${lessons.length} lecciones completadas`;
+      }
+
+      function show(i, push = true) {
+        current = Math.max(0, Math.min(lessons.length - 1, i));
+        lessons.forEach((l, j) => (l.hidden = j !== current));
+        $("#prev").disabled = current === 0;
+        $("#next").disabled = current === lessons.length - 1;
+        const isDone = done.has(current);
+        $("#mark").textContent = isDone ? "✓ Completada" : "Marcar como completada";
+        $("#mark").className = "btn" + (isDone ? " done" : "");
+        $("#mobile-title").textContent = `${current}. ${lessons[current].dataset.title}`;
+        if (push && location.hash !== `#leccion-${current}`)
+          history.replaceState(null, "", `#leccion-${current}`);
+        renderToc();
+        window.scrollTo(0, 0);
+      }
+
+      $("#prev").addEventListener("click", () => show(current - 1));
+      $("#next").addEventListener("click", () => show(current + 1));
+      $("#mark").addEventListener("click", () => {
+        if (done.has(current)) done.delete(current);
+        else done.add(current);
+        store.set("qa-curso-progreso", JSON.stringify([...done]));
+        show(current, false);
+      });
+      $("#open-toc").addEventListener("click", () => $("#side").classList.toggle("open"));
+      document.addEventListener("click", (e) => {
+        const side = $("#side");
+        if (
+          side.classList.contains("open") &&
+          !side.contains(e.target) &&
+          e.target.id !== "open-toc"
+        )
+          side.classList.remove("open");
+      });
+      window.addEventListener("hashchange", () => {
+        const m = location.hash.match(/leccion-(\d+)/);
+        if (m) show(Number(m[1]), false);
+      });
+
+      // ---------- Preguntas ----------
+      document.querySelectorAll(".question").forEach((q) => {
+        const why = document.createElement("p");
+        why.className = "why";
+        why.hidden = true;
+        q.appendChild(why);
+        q.querySelectorAll(".opts button").forEach((b) => {
+          b.type = "button";
+          b.addEventListener("click", () => {
+            q.querySelectorAll(".opts button").forEach((x) => x.classList.remove("right", "wrong"));
+            const ok = b.hasAttribute("data-ok");
+            b.classList.add(ok ? "right" : "wrong");
+            why.hidden = false;
+            why.className = "why " + (ok ? "right" : "wrong");
+            why.innerHTML = `<strong>${ok ? "Correcto." : "No."}</strong> <span>${esc(b.dataset.why || "")}</span>`;
+          });
+        });
+      });
+
+      // ---------- Clasificador ----------
+      const TARGETS = [
+        "test-data · environments/",
+        "test-data · common/",
+        "Secreto del CI (${VAR})",
+        "pages",
+        "components",
+        "api · cliente",
+        "api · schemas.ts",
+        "steps",
+        "fixtures",
+        "spec",
+        "utils",
+        "tests-of-layers",
+      ];
+      const ITEMS = [
+        {
+          t: "La URL de staging: https://staging.example.com",
+          a: 0,
+          why: "Cambia según el ambiente: environments/staging.json.",
+        },
+        {
+          t: "El texto “Epic sadface: Username is required”",
+          a: 1,
+          why: "Es un texto esperado igual en todos los ambientes: common/messages.json.",
+        },
+        {
+          t: "La contraseña real del usuario de staging",
+          a: 2,
+          why: "Nunca en el repo: ${STAGING_STANDARD_PASSWORD} en el JSON y el valor en el context qa-e2e.",
+        },
+        {
+          t: 'getByTestId("checkout") del botón del carrito',
+          a: 3,
+          why: "Un locator de una sola pantalla: cart.page.ts.",
+        },
+        {
+          t: "El encabezado con el carrito y el menú, que se ve en 3 pantallas",
+          a: 4,
+          why: "Se repite en 2 o más pantallas: header.component.ts.",
+        },
+        {
+          t: "PUT /booking/:id con el token en la cookie",
+          a: 5,
+          why: "Cómo llamar a un endpoint: booking.client.ts.",
+        },
+        {
+          t: "La forma que debe tener la respuesta de POST /auth",
+          a: 6,
+          why: "Un contrato: tokenSchema en schemas.ts.",
+        },
+        {
+          t: "Iniciar sesión como el rol lockedOut",
+          a: 7,
+          why: "Traduce un rol en un usuario y usa el page: AuthSteps.loginAs.",
+        },
+        {
+          t: "Crear una reserva por API antes del test para tener un id",
+          a: 7,
+          why: "Preparar datos es un step: BookingSteps.create.",
+        },
+        {
+          t: "Que los tests reciban OrdersSteps como { orders }",
+          a: 8,
+          why: "Entregar objetos a los tests: fixtures/<producto>/index.ts.",
+        },
+        {
+          t: 'expect(cartBadge).toHaveText("2")',
+          a: 9,
+          why: "Decidir qué es correcto es del spec.",
+        },
+        {
+          t: "Un firstName vacío para probar el error de “sin nombre”",
+          a: 9,
+          why: "El valor es el escenario: se queda en el spec, sobre el cliente que sale de los datos.",
+        },
+        {
+          t: "retries: 2 cuando corre en CI",
+          a: 10,
+          why: "Configuración técnica común: libs/utils/playwright.base.ts.",
+        },
+        {
+          t: "Revisar sin navegador que completeOrder hace los clics en orden",
+          a: 11,
+          why: "Probar una capa aislada: tests-of-layers/steps/.",
+        },
+      ];
+      let gi = 0;
+      let score = 0;
+      let answered = false;
+      function renderGame() {
+        const g = $("#game");
+        if (gi >= ITEMS.length) {
+          g.innerHTML = `<p class="item">Resultado: ${score} de ${ITEMS.length}</p>
+            <p>${score === ITEMS.length ? "Perfecto: ya sabes dónde va cada cosa." : score >= ITEMS.length - 3 ? "Muy bien. Repasa las que fallaste con las preguntas de arriba." : "Vuelve a las lecciones 3 a 9 y repite el ejercicio."}</p>
+            <div class="game-actions"><button class="btn primary" id="g-restart" type="button">Repetir</button></div>`;
+          $("#g-restart").addEventListener("click", () => {
+            gi = 0;
+            score = 0;
+            renderGame();
+          });
+          return;
+        }
+        const it = ITEMS[gi];
+        answered = false;
+        g.innerHTML = `<div class="count">${gi + 1} de ${ITEMS.length} · aciertos: ${score}</div>
+          <div class="item">${esc(it.t)}</div>
+          <div class="targets">${TARGETS.map((t, i) => `<button type="button" data-i="${i}">${esc(t)}</button>`).join("")}</div>
+          <p class="why" id="g-why" hidden></p>
+          <div class="game-actions"><button class="btn primary" id="g-next" type="button" hidden>Siguiente →</button></div>`;
+        g.querySelectorAll(".targets button").forEach((b) =>
+          b.addEventListener("click", () => {
+            if (answered) return;
+            answered = true;
+            const i = Number(b.dataset.i);
+            const ok = i === it.a;
+            if (ok) score++;
+            g.querySelector(".count").textContent =
+              `${gi + 1} de ${ITEMS.length} · aciertos: ${score}`;
+            b.classList.add(ok ? "right" : "wrong");
+            g.querySelector(`.targets button[data-i="${it.a}"]`).classList.add("right");
+            g.querySelectorAll(".targets button").forEach((x) => (x.disabled = true));
+            const w = $("#g-why");
+            w.hidden = false;
+            w.className = "why " + (ok ? "right" : "wrong");
+            w.innerHTML = `<strong>${ok ? "Correcto." : "Va en " + esc(TARGETS[it.a]) + "."}</strong> <span>${esc(it.why)}</span>`;
+            $("#g-next").hidden = false;
+          }),
+        );
+        $("#g-next").addEventListener("click", () => {
+          gi++;
+          renderGame();
+        });
+      }
+      renderGame();
+
+      const m = location.hash.match(/leccion-(\d+)/);
+      show(m ? Number(m[1]) : 0, false);
+    </script>
+  </body>
+</html>

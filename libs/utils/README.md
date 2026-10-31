@@ -1,6 +1,6 @@
 # utils
 
-Piezas técnicas que no son de negocio: la configuración base de Playwright y, más adelante, helpers, clientes de API y reporters.
+Piezas técnicas que no son de negocio: la configuración base de Playwright y, más adelante, helpers y reporters. Los clientes de API no van aquí: están en [libs/api](../api).
 
 ## Contenido
 

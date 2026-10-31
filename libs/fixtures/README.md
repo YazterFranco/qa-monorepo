@@ -13,13 +13,16 @@ libs/fixtures/
 
 ## Fixtures disponibles
 
-| Fixture    | Alcance | Producto  | Qué es                                                            |
-| ---------- | ------- | --------- | ----------------------------------------------------------------- |
-| `env`      | worker  | todos     | Los datos del producto en `TEST_ENV`, cargados una vez por worker |
-| `baseURL`  | test    | todos     | La `baseUrl` del ambiente; los pages navegan con rutas relativas  |
-| `auth`     | test    | todos     | `AuthSteps` del producto                                          |
-| `cart`     | test    | saucedemo | `CartSteps`                                                       |
-| `checkout` | test    | saucedemo | `CheckoutSteps`                                                   |
+| Fixture      | Alcance | Producto       | Qué es                                                            |
+| ------------ | ------- | -------------- | ----------------------------------------------------------------- |
+| `env`        | worker  | todos          | Los datos del producto en `TEST_ENV`, cargados una vez por worker |
+| `baseURL`    | test    | todos          | La `baseUrl` del ambiente; los pages navegan con rutas relativas  |
+| `auth`       | test    | todos          | `AuthSteps` del producto (en restful-booker pide tokens)          |
+| `cart`       | test    | saucedemo      | `CartSteps`                                                       |
+| `checkout`   | test    | saucedemo      | `CheckoutSteps`                                                   |
+| `authApi`    | test    | restful-booker | `AuthClient`, para probar `/auth` directamente                    |
+| `bookingApi` | test    | restful-booker | `BookingClient`, para probar `/booking` directamente              |
+| `bookings`   | test    | restful-booker | `BookingSteps`: crea las reservas que un test necesita            |
 
 Las fixtures de `restful-booker` usan `request` en vez de `page`, así que sus tests no abren navegador.
 

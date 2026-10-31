@@ -14,7 +14,7 @@ Al hacer commit, Husky corre `eslint --fix` y `prettier --write` sobre los archi
 
 Si ESLint dice que una capa no puede importar otra, o que un selector no va en ese archivo, el código está en la capa equivocada: revisa la [dirección de dependencias](README.md#dirección-de-dependencias) antes de desactivar la regla.
 
-En los pasos de abajo, `<producto>` es la carpeta del producto en cada capa: `saucedemo`, `the-internet`.
+En los pasos de abajo, `<producto>` es la carpeta del producto en cada capa: `the-internet`, `saucedemo`, `restful-booker` o `my-demo-app`.
 
 ## Agregar un page
 
@@ -48,6 +48,17 @@ Solo cuando el mismo bloque aparece en 2 o más pantallas.
 2. Pon ahí solo lo que cambia por ambiente (`baseUrl`, `users`). Lo que es igual en todos va en `<producto>/common/`.
 3. Escribe cada credencial como `${VAR}`, por ejemplo `"password": "${STAGING_STANDARD_PASSWORD}"`. Nunca valores reales.
 4. Agrega cada variable a `passThroughEnv` de `test:e2e` en [turbo.json](turbo.json) y al context `qa-e2e` de CircleCI.
+   La clave todavía no existe en `turbo.json`; la primera vez se agrega así:
+
+   ```json
+   "test:e2e": {
+     "env": ["TEST_ENV"],
+     "passThroughEnv": ["STAGING_STANDARD_PASSWORD"]
+   }
+   ```
+
+   `passThroughEnv` pasa la variable a la tarea sin que su valor cuente para la caché de Turbo.
+
 5. Pruébalo localmente:
 
    ```bash

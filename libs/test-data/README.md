@@ -62,4 +62,4 @@ Para que la variable llegue a las pruebas, agrégala a `passThroughEnv` de `test
 
 ## Pruebas
 
-[tests-of-layers/test-data](../../tests-of-layers/test-data): datos reales de los dos productos, combinación con `common/`, esquema inválido, claves desconocidas, variables que faltan y nombres inválidos o que intentan salir de la carpeta.
+[tests-of-layers/test-data](../../tests-of-layers/test-data): datos reales de cada producto, combinación con `common/`, esquema inválido, claves desconocidas, variables que faltan y nombres inválidos o que intentan salir de la carpeta.

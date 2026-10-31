@@ -1,0 +1,2385 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flujo del monorepo</title>
+    <style>
+      :root {
+        --bg: #f7f7f4;
+        --surface: #ffffff;
+        --surface-2: #f1f0ec;
+        --text: #1d1d1b;
+        --muted: #5e5d58;
+        --border: #e2e1dc;
+        --accent: #2f5bd3;
+        --accent-soft: #e9eefc;
+        --ok: #1f7a4d;
+        --ok-soft: #e4f3eb;
+        --bad: #b3261e;
+        --bad-soft: #fbe9e7;
+        --warn: #8a5a00;
+        --warn-soft: #fcf2db;
+        --code-bg: #f3f2ee;
+        --tok-k: #7a3db8;
+        --tok-s: #0f6b4a;
+        --tok-c: #8a8a84;
+        --l-cmd: #6b7280;
+        --l-config: #64748b;
+        --l-spec: #2f5bd3;
+        --l-fixture: #7a3db8;
+        --l-data: #b45309;
+        --l-steps: #0f766e;
+        --l-pages: #be185d;
+        --l-api: #c2410c;
+        --l-components: #4d7c0f;
+        --l-tool: #374151;
+        --l-result: #1f7a4d;
+        --radius: 10px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #141413;
+          --surface: #1c1c1a;
+          --surface-2: #242422;
+          --text: #ecebe6;
+          --muted: #a3a29b;
+          --border: #34342f;
+          --accent: #8aa8ff;
+          --accent-soft: #222a43;
+          --ok: #6fcf97;
+          --ok-soft: #1b2e23;
+          --bad: #ff8a80;
+          --bad-soft: #3a1f1c;
+          --warn: #f2c66d;
+          --warn-soft: #3a2f17;
+          --code-bg: #232321;
+          --tok-k: #c9a2ff;
+          --tok-s: #7fd8a8;
+          --tok-c: #85847d;
+          --l-cmd: #9ca3af;
+          --l-config: #94a3b8;
+          --l-spec: #8aa8ff;
+          --l-fixture: #c9a2ff;
+          --l-data: #f0a958;
+          --l-steps: #5fd3c5;
+          --l-pages: #f48fbf;
+          --l-api: #fb9a5b;
+          --l-components: #a3d65c;
+          --l-tool: #b8bec9;
+          --l-result: #6fcf97;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #141413;
+        --surface: #1c1c1a;
+        --surface-2: #242422;
+        --text: #ecebe6;
+        --muted: #a3a29b;
+        --border: #34342f;
+        --accent: #8aa8ff;
+        --accent-soft: #222a43;
+        --ok: #6fcf97;
+        --ok-soft: #1b2e23;
+        --bad: #ff8a80;
+        --bad-soft: #3a1f1c;
+        --warn: #f2c66d;
+        --warn-soft: #3a2f17;
+        --code-bg: #232321;
+        --tok-k: #c9a2ff;
+        --tok-s: #7fd8a8;
+        --tok-c: #85847d;
+        --l-cmd: #9ca3af;
+        --l-config: #94a3b8;
+        --l-spec: #8aa8ff;
+        --l-fixture: #c9a2ff;
+        --l-data: #f0a958;
+        --l-steps: #5fd3c5;
+        --l-pages: #f48fbf;
+        --l-api: #fb9a5b;
+        --l-components: #a3d65c;
+        --l-tool: #b8bec9;
+        --l-result: #6fcf97;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.55 system-ui,
+          -apple-system,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      code,
+      pre,
+      .mono {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.86em;
+      }
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header.top {
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 18px 0 6px;
+      }
+      h1 {
+        font-size: 1.45rem;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      .subtitle {
+        color: var(--muted);
+        margin: 2px 0 12px;
+        font-size: 0.95rem;
+      }
+      .theme-btn {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font: inherit;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+      nav.tabs {
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      nav.tabs button {
+        border: 0;
+        background: none;
+        color: var(--muted);
+        font: inherit;
+        font-size: 0.95rem;
+        padding: 10px 14px;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      nav.tabs button[aria-selected="true"] {
+        color: var(--text);
+        border-bottom-color: var(--accent);
+        font-weight: 600;
+      }
+      main {
+        padding: 22px 0 60px;
+      }
+      .panel[hidden] {
+        display: none;
+      }
+      .lead {
+        max-width: 760px;
+        color: var(--muted);
+        margin: 0 0 18px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
+      .chip {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 7px 14px;
+        font: inherit;
+        font-size: 0.92rem;
+        cursor: pointer;
+      }
+      .chip[aria-pressed="true"] {
+        background: var(--accent-soft);
+        border-color: var(--accent);
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .walk {
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      .stack {
+        position: sticky;
+        top: 12px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px;
+      }
+      .stack h3 {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin: 4px 6px 8px;
+      }
+      .layer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        font-size: 0.92rem;
+        color: var(--muted);
+        border-left: 4px solid var(--c, var(--border));
+        margin-bottom: 4px;
+        transition: background 0.15s;
+      }
+      .layer .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--c);
+        flex: none;
+      }
+      .layer.visited {
+        color: var(--text);
+      }
+      .layer.active {
+        background: var(--surface-2);
+        color: var(--text);
+        font-weight: 600;
+      }
+      .layer small {
+        margin-left: auto;
+        font-size: 0.75rem;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+      }
+      .step-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .badge {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 2px 10px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--surface);
+        background: var(--c, var(--accent));
+      }
+      .step-title {
+        font-size: 1.2rem;
+        margin: 4px 0 8px;
+      }
+      .file {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .explain p {
+        margin: 0 0 10px;
+      }
+      .explain ul {
+        margin: 0 0 10px;
+        padding-left: 20px;
+      }
+      pre.code {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow-x: auto;
+        line-height: 1.5;
+        margin: 12px 0;
+        tab-size: 2;
+      }
+      .tok-k {
+        color: var(--tok-k);
+      }
+      .tok-s {
+        color: var(--tok-s);
+      }
+      .tok-c {
+        color: var(--tok-c);
+        font-style: italic;
+      }
+      .callout {
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.92rem;
+        margin-top: 12px;
+      }
+      .callout strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+      .callout.fail {
+        background: var(--bad-soft);
+        color: var(--text);
+        border-left: 4px solid var(--bad);
+      }
+      .callout.note {
+        background: var(--warn-soft);
+        border-left: 4px solid var(--warn);
+      }
+      .callout.okc {
+        background: var(--ok-soft);
+        border-left: 4px solid var(--ok);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .btn {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 14px;
+        font: inherit;
+        font-size: 0.92rem;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--surface);
+        font-weight: 600;
+      }
+      .btn:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+      .dots {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+        flex-wrap: wrap;
+      }
+      .dots button {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 0;
+        padding: 0;
+        background: var(--border);
+        cursor: pointer;
+      }
+      .dots button.on {
+        background: var(--accent);
+      }
+      .hint {
+        font-size: 0.82rem;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      /* Datos */
+      .sim {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+      .field {
+        margin-bottom: 14px;
+      }
+      .field label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      select {
+        width: 100%;
+        font: inherit;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      .check {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        font-size: 0.92rem;
+        margin-bottom: 10px;
+      }
+      .check input {
+        margin-top: 4px;
+      }
+      .check.disabled {
+        opacity: 0.45;
+      }
+      .pipe {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .pipe .stage {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 0.82rem;
+        background: var(--surface);
+        min-height: 74px;
+      }
+      .pipe .stage b {
+        display: block;
+        font-size: 0.86rem;
+        margin-bottom: 2px;
+      }
+      .stage.ok {
+        border-color: var(--ok);
+        background: var(--ok-soft);
+      }
+      .stage.bad {
+        border-color: var(--bad);
+        background: var(--bad-soft);
+      }
+      .stage.skip {
+        opacity: 0.45;
+      }
+      .stage .st {
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .stage.ok .st {
+        color: var(--ok);
+      }
+      .stage.bad .st {
+        color: var(--bad);
+      }
+      .files {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .files h4,
+      .out h4 {
+        margin: 0 0 6px;
+        font-size: 0.86rem;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .files pre,
+      .out pre {
+        margin: 0;
+        max-height: 340px;
+        overflow: auto;
+      }
+      .out {
+        margin-top: 14px;
+      }
+      .err {
+        background: var(--bad-soft);
+        border: 1px solid var(--bad);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 12px 14px;
+        white-space: pre-wrap;
+      }
+      /* Pipeline */
+      .lane {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .lane h3 {
+        margin: 0 0 10px;
+        font-size: 0.95rem;
+      }
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .flow .arrow {
+        align-self: center;
+        color: var(--muted);
+      }
+      .node {
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-align: left;
+      }
+      .node small {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+      }
+      .node[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .node.pending {
+        border-style: dashed;
+      }
+      .group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .detail dl {
+        display: grid;
+        grid-template-columns: 150px minmax(0, 1fr);
+        gap: 6px 14px;
+        margin: 0;
+      }
+      .detail dt {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+      .detail dd {
+        margin: 0;
+      }
+      /* Matriz */
+      .matrix-wrap {
+        overflow-x: auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      table.matrix {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 720px;
+        font-size: 0.88rem;
+      }
+      .matrix th,
+      .matrix td {
+        border-bottom: 1px solid var(--border);
+        padding: 8px 6px;
+        text-align: center;
+      }
+      .matrix thead th {
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+      .matrix tbody th {
+        text-align: left;
+        padding-left: 12px;
+        white-space: nowrap;
+      }
+      .cell {
+        border: 0;
+        border-radius: 6px;
+        width: 100%;
+        padding: 6px 4px;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .cell.ok {
+        background: var(--ok-soft);
+        color: var(--ok);
+      }
+      .cell.no {
+        background: var(--bad-soft);
+        color: var(--bad);
+      }
+      .cell.conv {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .cell.same {
+        background: none;
+        color: var(--muted);
+        cursor: default;
+      }
+      .cell.sel {
+        outline: 2px solid var(--accent);
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin: 12px 0;
+      }
+      .legend span::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        margin-right: 6px;
+        vertical-align: -1px;
+        background: var(--sw);
+      }
+      .extra-rules {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .extra-rules .card h4 {
+        margin: 0 0 6px;
+        font-size: 0.95rem;
+      }
+      .extra-rules .card p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      footer {
+        color: var(--muted);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--border);
+        padding: 18px 0 30px;
+      }
+      @media (max-width: 900px) {
+        .walk,
+        .sim {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .stack {
+          position: static;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+        .stack h3 {
+          width: 100%;
+        }
+        .layer {
+          margin: 0;
+          padding: 5px 8px;
+          font-size: 0.82rem;
+        }
+        .layer small {
+          display: none;
+        }
+        .pipe {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .files,
+        .extra-rules {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .detail dl {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .detail dt {
+          margin-top: 6px;
+        }
+        .dots {
+          margin-left: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <div class="top-row">
+          <h1>Flujo del monorepo</h1>
+          <button class="theme-btn" id="theme" type="button">Tema</button>
+        </div>
+        <p class="subtitle">
+          Qué pasa, capa por capa, cuando corre un test de qa-monorepo. Complementa al
+          <a href="../README.md">README</a> y al <a href="curso.html">curso</a>.
+        </p>
+        <nav class="tabs" role="tablist" aria-label="Vistas">
+          <button role="tab" aria-selected="true" aria-controls="p-walk" id="t-walk">
+            Un test por dentro
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="p-data" id="t-data">
+            Los datos
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="p-pipe" id="t-pipe">
+            El pipeline
+          </button>
+          <button role="tab" aria-selected="false" aria-controls="p-rules" id="t-rules">
+            Reglas de capas
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <!-- 1. Un test por dentro -->
+      <section class="panel" id="p-walk" role="tabpanel" aria-labelledby="t-walk">
+        <p class="lead">
+          Elige un test real del repo y avanza paso a paso. A la izquierda se marca la capa en la
+          que estás; a la derecha, el archivo, el código y qué pasa si algo falla ahí. También
+          puedes usar las flechas ← → del teclado.
+        </p>
+        <div class="chips" id="scenarios"></div>
+        <div class="walk">
+          <aside class="stack" id="stack"><h3>Capas</h3></aside>
+          <div>
+            <article class="card" id="step"></article>
+            <div class="controls">
+              <button class="btn" id="prev" type="button">← Anterior</button>
+              <button class="btn primary" id="next" type="button">Siguiente →</button>
+              <button class="btn" id="play" type="button">▶ Reproducir</button>
+              <div class="dots" id="dots" aria-label="Pasos"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Los datos -->
+      <section class="panel" id="p-data" role="tabpanel" aria-labelledby="t-data" hidden>
+        <p class="lead">
+          Simulador de <code>loadEnvironment(producto, ambiente)</code> de
+          <code>libs/test-data/loader.ts</code>, con los archivos reales del repo. Cambia el
+          producto, el ambiente o provoca un error para ver en qué etapa falla y con qué mensaje.
+        </p>
+        <div class="sim">
+          <div class="card">
+            <div class="field">
+              <label for="d-product">Producto</label>
+              <select id="d-product">
+                <option value="saucedemo">saucedemo (web)</option>
+                <option value="the-internet">the-internet (web)</option>
+                <option value="restful-booker">restful-booker (API)</option>
+                <option value="my-demo-app">my-demo-app (Android)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="d-env">TEST_ENV</label>
+              <select id="d-env">
+                <option value="public-demo">public-demo (el de siempre)</option>
+                <option value="staging">staging (ejemplo del README, no está en el repo)</option>
+                <option value="qa">qa (no existe)</option>
+              </select>
+            </div>
+            <label class="check" id="c-var-wrap">
+              <input type="checkbox" id="d-var" />
+              <span>Definir <code>STAGING_STANDARD_PASSWORD</code> en el entorno</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="d-typo" />
+              <span>Agregar <code>common/costumers.json</code> (error de tipeo en el nombre)</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="d-url" />
+              <span>Escribir mal la <code>baseUrl</code> del ambiente</span>
+            </label>
+            <div class="callout note">
+              <strong>Por qué importa</strong>
+              Todos estos errores aparecen antes de abrir el navegador o la app, en milisegundos y
+              con un mensaje que dice qué arreglar.
+            </div>
+          </div>
+          <div>
+            <div class="pipe" id="pipe"></div>
+            <div class="files" id="files"></div>
+            <div class="out" id="out"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. El pipeline -->
+      <section class="panel" id="p-pipe" role="tabpanel" aria-labelledby="t-pipe" hidden>
+        <p class="lead">
+          Del commit en tu máquina al reporte del CI. Toca cada caja para ver qué corre, qué la hace
+          fallar y qué deja.
+        </p>
+        <div class="callout note" style="margin-bottom: 14px">
+          <strong>Estado</strong>
+          El pipeline de CircleCI está escrito en <code>ci/circleci/config.yml</code> pero todavía
+          no se ha ejecutado: falta conectar el repositorio en CircleCI.
+        </div>
+        <div class="lane">
+          <h3>En tu máquina</h3>
+          <div class="flow" id="lane-local"></div>
+        </div>
+        <div class="lane">
+          <h3>En CircleCI (workflow <code>qa</code>)</h3>
+          <div class="flow" id="lane-ci"></div>
+        </div>
+        <article class="card detail" id="node-detail"></article>
+      </section>
+
+      <!-- 4. Reglas de capas -->
+      <section class="panel" id="p-rules" role="tabpanel" aria-labelledby="t-rules" hidden>
+        <p class="lead">
+          Quién puede importar a quién, según <code>eslint.config.mjs</code>. Cada fila es la capa
+          que importa; cada columna, la que es importada. Toca una celda para ver el porqué.
+        </p>
+        <div class="legend">
+          <span style="--sw: var(--ok)">Permitido</span>
+          <span style="--sw: var(--bad)">ESLint lo prohíbe</span>
+          <span style="--sw: var(--warn)">Permitido, pero por convención no se hace</span>
+        </div>
+        <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+        <article class="card" id="cell-detail" style="margin-top: 14px"></article>
+        <div class="extra-rules">
+          <div class="card">
+            <h4>Sin selectores fuera de pages</h4>
+            <p>
+              En specs y steps, ESLint prohíbe <code>locator</code>, <code>getBy*</code>,
+              <code>$</code> y <code>$$</code>: “Los selectores van en los page objects”.
+            </p>
+          </div>
+          <div class="card">
+            <h4>Sin <code>expect</code> en pages, components ni api</h4>
+            <p>
+              No pueden importar <code>expect</code> de <code>@playwright/test</code> ni de
+              <code>@wdio/globals</code>. La aserción la decide el spec.
+            </p>
+          </div>
+          <div class="card">
+            <h4>Specs desde fixtures</h4>
+            <p>
+              Un spec web o de API no puede importar <code>@playwright/test</code>: usa
+              <code>test</code> y <code>expect</code> de <code>fixtures/&lt;producto&gt;</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      Hecho a mano a partir del código de qa-monorepo. Si cambias una capa, un comando o una regla,
+      actualiza también esta página.
+    </footer>
+
+    <!-- ============ Fragmentos de código (copiados del repo) ============ -->
+    <script type="text/plain" data-code="web-cmd">
+      pnpm turbo run test:e2e --filter=saucedemo-e2e
+
+      # Turbo, según turbo.json:
+      #   1. typecheck de cada capa que usa la app (dependsOn: ["^typecheck"])
+      #   2. playwright test dentro de apps/saucedemo-e2e
+    </script>
+    <script type="text/plain" data-code="web-config">
+      // apps/saucedemo-e2e/playwright.config.ts
+      import { defineConfig } from "@playwright/test";
+      import { basePlaywrightConfig, desktopChromium } from "utils";
+
+      export default defineConfig(basePlaywrightConfig, {
+        testDir: ".",
+        projects: [desktopChromium],
+        use: { testIdAttribute: "data-test" },
+      });
+    </script>
+    <script type="text/plain" data-code="web-spec">
+      import { expect, test } from "fixtures/saucedemo";
+      import { CheckoutCompletePage, CheckoutInfoPage } from "pages/saucedemo";
+
+      test("compra completa de un producto", async ({ auth, cart, checkout, env, page }) => {
+        await auth.loginAs("standard");
+        await cart.add(env.products.backpack);
+
+        await checkout.completeOrder(env.customers.standard);
+
+        await expect(new CheckoutCompletePage(page).confirmationTitle).toHaveText(
+          env.messages.orderComplete,
+        );
+      });
+    </script>
+    <script type="text/plain" data-code="web-fixture">
+      // libs/fixtures/saucedemo/index.ts
+      export const test = productTest("saucedemo").extend<TestFixtures>({
+        auth: async ({ page, env }, use) => {
+          await use(new AuthSteps(page, env));
+        },
+        cart: async ({ page }, use) => {
+          await use(new CartSteps(page));
+        },
+        checkout: async ({ page }, use) => {
+          await use(new CheckoutSteps(page));
+        },
+      });
+
+      // libs/fixtures/base.fixture.ts
+      env: [async ({}, use) => { await use(loadEnvironment(product)); }, { scope: "worker" }],
+      baseURL: async ({ env }, use) => { await use(env.baseUrl); },
+    </script>
+    <script type="text/plain" data-code="web-data">
+      // Lo que recibe el test en env (resumido)
+      {
+        "baseUrl": "https://www.saucedemo.com",            // environments/public-demo.json
+        "users": {
+          "standard": { "username": "standard_user", "password": "secret_sauce" }
+        },
+        "messages": { "orderComplete": "Thank you for your order!" },   // common/messages.json
+        "customers": {
+          "standard": { "firstName": "Ana", "lastName": "Pérez", "postalCode": "28001" }
+        },
+        "products": {
+          "backpack": { "name": "Sauce Labs Backpack", "price": 29.99 }  // common/products.json
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="web-auth">
+      // libs/steps/saucedemo/auth.steps.ts
+      async loginAs(role: string): Promise<void> {
+        const user = this.environment.users[role];
+        if (!user) {
+          const roles = Object.keys(this.environment.users).join(", ");
+          throw new Error(
+            `El ambiente no tiene un usuario con rol "${role}". Roles disponibles: ${roles}.`,
+          );
+        }
+
+        const loginPage = new LoginPage(this.page);
+        await loginPage.goto();
+        await loginPage.login(user.username, user.password);
+      }
+    </script>
+    <script type="text/plain" data-code="web-page">
+      // libs/pages/saucedemo/login.page.ts
+      export class LoginPage {
+        readonly usernameInput: Locator;
+        readonly passwordInput: Locator;
+        readonly loginButton: Locator;
+        readonly errorMessage: Locator;
+
+        constructor(private readonly page: Page) {
+          this.usernameInput = page.getByTestId("username");
+          this.passwordInput = page.getByTestId("password");
+          this.loginButton = page.getByTestId("login-button");
+          this.errorMessage = page.getByTestId("error");
+        }
+
+        async goto(): Promise<void> {
+          await this.page.goto("/");   // relativa a baseURL
+        }
+
+        async login(username: string, password: string): Promise<void> {
+          await this.fillUsername(username);
+          await this.fillPassword(password);
+          await this.submit();
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="web-cart">
+      // libs/steps/saucedemo/cart.steps.ts
+      async add(...products: Product[]): Promise<void> {
+        const inventory = new InventoryPage(this.page);
+        for (const product of products) {
+          await inventory.addToCart(product.name);
+        }
+      }
+
+      // libs/pages/saucedemo/inventory.page.ts
+      async addToCart(productName: string): Promise<void> {
+        await this.addToCartButton(productName).click();
+      }
+
+      /** La app arma el data-test del botón con la acción y el nombre: "add-to-cart-sauce-labs-backpack". */
+      function productTestId(action: string, productName: string): string {
+        return `${action}-${productName}`.replace(/\s+/g, "-").toLowerCase();
+      }
+    </script>
+    <script type="text/plain" data-code="web-checkout">
+      // libs/steps/saucedemo/checkout.steps.ts
+      async enterCustomerInfo(customer: Customer): Promise<void> {
+        await new InventoryPage(this.page).header.openCart();
+        await new CartPage(this.page).checkout();
+
+        const info = new CheckoutInfoPage(this.page);
+        await info.fill(customer);
+        await info.submit();
+      }
+
+      async completeOrder(customer: Customer): Promise<void> {
+        await this.enterCustomerInfo(customer);
+        await new CheckoutOverviewPage(this.page).finish();
+      }
+    </script>
+    <script type="text/plain" data-code="web-component">
+      // libs/components/saucedemo/header.component.ts
+      export class Header {
+        readonly cartLink: Locator;
+        readonly cartBadge: Locator;
+        private readonly menuButton: Locator;
+        private readonly logoutLink: Locator;
+
+        constructor(root: Locator) {
+          this.cartLink = root.getByTestId("shopping-cart-link");
+          this.cartBadge = root.getByTestId("shopping-cart-badge");
+          this.menuButton = root.getByRole("button", { name: "Open Menu" });
+          this.logoutLink = root.getByTestId("logout-sidebar-link");
+        }
+
+        async openCart(): Promise<void> {
+          await this.cartLink.click();
+        }
+      }
+
+      // En InventoryPage, CartPage...
+      this.header = new Header(page.getByTestId("header-container"));
+    </script>
+    <script type="text/plain" data-code="web-tool">
+      Lo que Playwright hace en Chrome, en orden:
+
+      goto   https://www.saucedemo.com/
+      fill   [data-test="username"]          standard_user
+      fill   [data-test="password"]          secret_sauce
+      click  [data-test="login-button"]
+      click  [data-test="add-to-cart-sauce-labs-backpack"]
+      click  [data-test="header-container"] >> [data-test="shopping-cart-link"]
+      click  [data-test="checkout"]
+      fill   [data-test="firstName"]         Ana
+      fill   [data-test="lastName"]          Pérez
+      fill   [data-test="postalCode"]        28001
+      click  [data-test="continue"]
+      click  [data-test="finish"]
+    </script>
+    <script type="text/plain" data-code="web-assert">
+      await expect(new CheckoutCompletePage(page).confirmationTitle).toHaveText(
+        env.messages.orderComplete,   // "Thank you for your order!"
+      );
+    </script>
+    <script type="text/plain" data-code="web-result">
+      ✓  [chromium] › checkout.spec.ts:4:5 › compra completa de un producto
+
+      Si falla:
+        test-results/<test>/test-failed-1.png   captura
+        test-results/<test>/video.webm          video
+        test-results/<test>/trace.zip           trace (en el primer reintento, en CI)
+        playwright-report/index.html            pnpm --filter saucedemo-e2e exec playwright show-report
+    </script>
+
+    <script type="text/plain" data-code="api-cmd">
+      pnpm turbo run test:e2e --filter=restful-booker-api
+    </script>
+    <script type="text/plain" data-code="api-config">
+      // apps/restful-booker-api/playwright.config.ts
+      export default defineConfig(basePlaywrightConfig, {
+        testDir: ".",
+        projects: [{ name: "api" }],   // sin navegador
+        use: { extraHTTPHeaders: { Accept: "application/json" } },
+      });
+    </script>
+    <script type="text/plain" data-code="api-spec">
+      // apps/restful-booker-api/booking.spec.ts
+      test("actualizar con token cambia todos los campos", async ({
+        auth,
+        bookingApi,
+        bookings,
+        env,
+      }) => {
+        const token = await auth.tokenFor("admin");
+        const { bookingid } = await bookings.create(env.bookings.standard);
+
+        const response = await bookingApi.update(bookingid, env.bookings.rescheduled, token);
+
+        expect(response.status()).toBe(200);
+        expect(await parseBody(response, bookingResponseSchema)).toEqual(env.bookings.rescheduled);
+      });
+    </script>
+    <script type="text/plain" data-code="api-fixture">
+      // libs/fixtures/restful-booker/index.ts
+      // Solo usa `request`: ningún test de este producto abre un navegador.
+      export const test = productTest("restful-booker").extend<TestFixtures>({
+        authApi: async ({ request }, use) => {
+          await use(new AuthClient(request));
+        },
+        bookingApi: async ({ request }, use) => {
+          await use(new BookingClient(request));
+        },
+        auth: async ({ request, env }, use) => {
+          await use(new AuthSteps(request, env));
+        },
+        bookings: async ({ request }, use) => {
+          await use(new BookingSteps(request));
+        },
+      });
+    </script>
+    <script type="text/plain" data-code="api-data">
+      // environments/public-demo.json
+      "baseUrl": "https://restful-booker.herokuapp.com",
+      "users": { "admin": { "username": "admin", "password": "password123" } }
+
+      // common/bookings.json
+      "standard": {
+        "firstname": "Ana", "lastname": "Pérez", "totalprice": 150, "depositpaid": true,
+        "bookingdates": { "checkin": "2026-12-01", "checkout": "2026-12-05" },
+        "additionalneeds": "Desayuno"
+      },
+      "rescheduled": {
+        "firstname": "Eva", "lastname": "Ruiz", "totalprice": 200, "depositpaid": false,
+        "bookingdates": { "checkin": "2027-02-01", "checkout": "2027-02-04" },
+        "additionalneeds": "Cena"
+      }
+    </script>
+    <script type="text/plain" data-code="api-auth">
+      // libs/steps/restful-booker/auth.steps.ts
+      async tokenFor(role: string): Promise<string> {
+        const user = this.environment.users[role];
+        // ... si no existe, falla con los roles disponibles
+
+        const response = await new AuthClient(this.request).createToken(user);
+        const body: unknown = await response.json();
+        const failure = authFailureSchema.safeParse(body);
+        if (failure.success) {
+          throw new Error(`La API no dio token para "${role}": ${failure.data.reason}.`);
+        }
+        return (await parseBody(response, tokenSchema)).token;
+      }
+    </script>
+    <script type="text/plain" data-code="api-create">
+      // libs/steps/restful-booker/booking.steps.ts
+      /** Preparación de datos por API: crea lo que un test necesita sin pasar por la interfaz. */
+      async create(booking: Booking): Promise<CreatedBooking> {
+        const response = await new BookingClient(this.request).create(booking);
+        if (!response.ok()) {
+          throw new Error(
+            `No se pudo crear la reserva: ${response.status()} ${response.statusText()}.`,
+          );
+        }
+        return parseBody(response, createdBookingSchema);
+      }
+    </script>
+    <script type="text/plain" data-code="api-client">
+      // libs/api/restful-booker/booking.client.ts
+      async update(id: number, booking: BookingPayload, token?: string): Promise<APIResponse> {
+        return this.request.put(`/booking/${id}`, { data: booking, headers: authHeaders(token) });
+      }
+
+      /** Restful Booker recibe el token en una cookie. Sin token, no se manda nada. */
+      function authHeaders(token?: string): Record<string, string> {
+        return token ? { Cookie: `token=${token}` } : {};
+      }
+    </script>
+    <script type="text/plain" data-code="api-tool">
+      Lo que viaja por la red (el id y el token cambian en cada corrida):
+
+      POST https://restful-booker.herokuapp.com/auth
+           { "username": "admin", "password": "password123" }
+        ←  200 { "token": "…" }
+
+      POST https://restful-booker.herokuapp.com/booking
+           { "firstname": "Ana", "lastname": "Pérez", ... }
+        ←  200 { "bookingid": 1234, "booking": { ... } }
+
+      PUT  https://restful-booker.herokuapp.com/booking/1234
+           Cookie: token=…
+           { "firstname": "Eva", "lastname": "Ruiz", ... }
+        ←  200 { "firstname": "Eva", "lastname": "Ruiz", ... }
+    </script>
+    <script type="text/plain" data-code="api-assert">
+      expect(response.status()).toBe(200);
+      expect(await parseBody(response, bookingResponseSchema)).toEqual(env.bookings.rescheduled);
+
+      // libs/api/response.ts
+      export async function parseBody<T extends z.ZodType>(response: APIResponse, schema: T) {
+        const body: unknown = await response.json();
+        const result = schema.safeParse(body);
+        if (!result.success) {
+          throw new Error(`La respuesta de ${response.url()} no cumple el contrato:\n${result.error.message}`);
+        }
+        return result.data;
+      }
+    </script>
+    <script type="text/plain" data-code="api-result">
+      ✓  9 [api] › booking.spec.ts:72:7 › modificar y borrar › actualizar con token cambia todos los campos (528ms)
+
+      13 passed (6.0s)
+    </script>
+
+    <script type="text/plain" data-code="mob-cmd">
+      pnpm --filter my-demo-app-e2e app:download   # una vez: baja el APK a app/
+      pnpm test:mobile                             # turbo → wdio run wdio.conf.ts
+    </script>
+    <script type="text/plain" data-code="mob-config">
+      // apps/my-demo-app-e2e/wdio.conf.ts (resumido)
+      process.env.APPIUM_HOME ??= __dirname;   // Appium busca aquí su driver
+
+      capabilities: [{
+        platformName: "Android",
+        "appium:automationName": "UiAutomator2",
+        "appium:avd": process.env.ANDROID_AVD ?? "Pixel_10_Pro",
+        "appium:app": path.join(__dirname, "app", "my-demo-app.apk"),
+      }],
+      services: ["appium"],
+      framework: "mocha",
+      specFileRetries: process.env.CI ? 1 : 0,
+      afterTest: async (test, _context, { passed }) => {
+        if (!passed) await saveEvidence(`${test.parent} ${test.title}`);
+      },
+    </script>
+    <script type="text/plain" data-code="mob-spec">
+      // apps/my-demo-app-e2e/login.spec.ts
+      import { driver, expect } from "@wdio/globals";
+      import { myDemoApp } from "fixtures/my-demo-app";
+      import { CatalogScreen, LoginScreen } from "pages/my-demo-app";
+
+      describe("login", () => {
+        const { env, auth, restartApp } = myDemoApp(driver);
+
+        beforeEach(async () => {
+          await restartApp();
+        });
+
+        it("usuario estándar inicia sesión y vuelve al catálogo", async () => {
+          await auth.loginAs("standard");
+
+          await expect(new CatalogScreen(driver).title).toHaveText(env.messages.catalogTitle);
+        });
+      });
+    </script>
+    <script type="text/plain" data-code="mob-fixture">
+      // libs/fixtures/my-demo-app/index.ts
+      // WebdriverIO no tiene fixtures como Playwright: una función arma lo mismo.
+      export function myDemoApp(driver: Browser) {
+        const env = loadEnvironment("my-demo-app");
+        return {
+          env,
+          auth: new AuthSteps(driver, env),
+          cart: new CartSteps(driver),
+          restartApp: async (): Promise<void> => {
+            await driver.execute("mobile: clearApp", { appId: APP_PACKAGE });
+            await driver.execute("mobile: activateApp", { appId: APP_PACKAGE });
+            await new CompatibilityDialog(driver).dismissWhileWaitingFor(new Header(driver).menuButton);
+          },
+        };
+      }
+    </script>
+    <script type="text/plain" data-code="mob-data">
+      // libs/test-data/my-demo-app/environments/public-demo.json (sin baseUrl: es una app)
+      "users": {
+        "standard":  { "username": "bod@example.com",   "password": "10203040" },
+        "lockedOut": { "username": "alice@example.com", "password": "10203040" }
+      }
+
+      // common/messages.json
+      "catalogTitle": "Products",
+      "lockedOut": "Sorry this user has been locked out."
+    </script>
+    <script type="text/plain" data-code="mob-auth">
+      // libs/steps/my-demo-app/auth.steps.ts
+      async openLogin(): Promise<void> {
+        await new CatalogScreen(this.driver).header.goToLogin();
+        await new CompatibilityDialog(this.driver).dismissWhileWaitingFor(
+          new LoginScreen(this.driver).loginButton,
+        );
+      }
+
+      async loginAs(role: string): Promise<void> {
+        const user = this.environment.users[role];
+        // ... si no existe, falla con los roles disponibles
+        await this.openLogin();
+        await new LoginScreen(this.driver).login(user.username, user.password);
+      }
+    </script>
+    <script type="text/plain" data-code="mob-component">
+      // libs/components/my-demo-app/header.component.ts
+      get menuButton() {
+        return this.driver.$("~View menu");          // accessibility id
+      }
+      async goToLogin(): Promise<void> {
+        await this.openMenu();
+        await this.loginMenuItem.click();            // ~Login Menu Item
+      }
+
+      // libs/components/my-demo-app/compatibility-dialog.component.ts
+      async dismissWhileWaitingFor(target: ChainablePromiseElement, timeout = 30_000) {
+        await this.driver.waitUntil(async () => {
+          if (await this.dontShowAgainButton.isDisplayed()) {
+            await this.dontShowAgainButton.click();
+            return false;
+          }
+          return target.isDisplayed();
+        }, { timeout, interval: 500, timeoutMsg: "La pantalla esperada no apareció." });
+      }
+    </script>
+    <script type="text/plain" data-code="mob-page">
+      // libs/pages/my-demo-app/login.screen.ts
+      export class LoginScreen {
+        constructor(private readonly driver: Browser) {}
+
+        get usernameInput() {
+          return this.driver.$(androidId("nameET"));   // resource-id
+        }
+
+        get loginButton() {
+          return this.driver.$("~Tap to login with given credentials");
+        }
+
+        async login(username: string, password: string): Promise<void> {
+          await this.fillUsername(username);
+          await this.fillPassword(password);
+          await this.submit();
+        }
+      }
+    </script>
+    <script type="text/plain" data-code="mob-tool">
+      WebdriverIO  →  Appium (servidor local)  →  UiAutomator2 (dentro del emulador)  →  la app
+
+      mobile: clearApp     com.saucelabs.mydemoapp.android
+      mobile: activateApp  com.saucelabs.mydemoapp.android
+      click     ~View menu
+      click     ~Login Menu Item
+      (si aparece "This app isn't 16 KB compatible": click android:id/button1)
+      setValue  id=com.saucelabs.mydemoapp.android:id/nameET       bod@example.com
+      setValue  id=com.saucelabs.mydemoapp.android:id/passwordET   10203040
+      click     ~Tap to login with given credentials
+    </script>
+    <script type="text/plain" data-code="mob-assert">
+      await expect(new CatalogScreen(driver).title).toHaveText(env.messages.catalogTitle);
+      // expect de @wdio/globals: también espera solo, como el de Playwright
+    </script>
+    <script type="text/plain" data-code="mob-result">
+      El reporter "spec" de WebdriverIO lista cada it con ✓ o ✖ y un resumen por archivo.
+
+      Si un test o un beforeEach falla:
+        apps/my-demo-app-e2e/test-results/<describe>-<test>.png   captura de la pantalla
+        apps/my-demo-app-e2e/test-results/<describe>-<test>.xml   árbol de elementos (page source)
+    </script>
+
+    <script>
+      // ---------- Utilidades ----------
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+      // Prettier indenta el contenido de los bloques; se quita la sangría común.
+      function dedent(text) {
+        const lines = text.replace(/^\n+|\s+$/g, "").split("\n");
+        const indent = Math.min(
+          ...lines.filter((line) => line.trim()).map((line) => line.match(/^ */)[0].length),
+        );
+        return lines.map((line) => line.slice(indent)).join("\n");
+      }
+
+      function code(id) {
+        const el = document.querySelector(`script[data-code="${id}"]`);
+        return el ? dedent(el.textContent) : "";
+      }
+
+      const TOKENS =
+        /(\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(import|from|export|const|let|async|await|return|new|class|constructor|private|readonly|if|throw|for|of|function|interface|type|extends|describe|it|beforeEach|test|expect|get)\b/g;
+
+      function highlight(src, lang) {
+        if (lang !== "ts") return esc(src);
+        let out = "";
+        let last = 0;
+        src.replace(TOKENS, (m, comment, str, kw, offset) => {
+          out += esc(src.slice(last, offset));
+          const cls = comment ? "tok-c" : str ? "tok-s" : "tok-k";
+          out += `<span class="${cls}">${esc(m)}</span>`;
+          last = offset + m.length;
+          return m;
+        });
+        return out + esc(src.slice(last));
+      }
+
+      function pre(id, lang = "ts") {
+        return `<pre class="code"><code>${highlight(code(id), lang)}</code></pre>`;
+      }
+
+      // ---------- Tema ----------
+      const themeBtn = $("#theme");
+      function applyTheme(t) {
+        if (t) document.documentElement.dataset.theme = t;
+        else delete document.documentElement.dataset.theme;
+        const dark = t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches);
+        themeBtn.textContent = dark ? "☀︎ Claro" : "☾ Oscuro";
+      }
+      let savedTheme = null;
+      try {
+        savedTheme = localStorage.getItem("qa-docs-theme");
+      } catch (e) {}
+      applyTheme(savedTheme);
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () =>
+        applyTheme(document.documentElement.dataset.theme || null),
+      );
+      themeBtn.addEventListener("click", () => {
+        const dark = document.documentElement.dataset.theme
+          ? document.documentElement.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        const next = dark ? "light" : "dark";
+        applyTheme(next);
+        try {
+          localStorage.setItem("qa-docs-theme", next);
+        } catch (e) {}
+      });
+
+      // ---------- Pestañas ----------
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      function selectTab(tab) {
+        tabs.forEach((t) => {
+          const on = t === tab;
+          t.setAttribute("aria-selected", on);
+          document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+        });
+        stopPlay();
+      }
+      tabs.forEach((t) => t.addEventListener("click", () => selectTab(t)));
+
+      // ---------- 1. Un test por dentro ----------
+      const LAYERS = {
+        cmd: { name: "Comando", color: "var(--l-cmd)", where: "terminal / turbo.json" },
+        config: { name: "Configuración", color: "var(--l-config)", where: "apps/…/config" },
+        spec: { name: "Spec", color: "var(--l-spec)", where: "apps/" },
+        fixture: { name: "Fixtures", color: "var(--l-fixture)", where: "libs/fixtures" },
+        data: { name: "Test data", color: "var(--l-data)", where: "libs/test-data" },
+        steps: { name: "Steps", color: "var(--l-steps)", where: "libs/steps" },
+        pages: { name: "Pages / screens", color: "var(--l-pages)", where: "libs/pages" },
+        api: { name: "Clientes de API", color: "var(--l-api)", where: "libs/api" },
+        components: { name: "Components", color: "var(--l-components)", where: "libs/components" },
+        tool: { name: "Herramienta", color: "var(--l-tool)", where: "Playwright / Appium" },
+        result: { name: "Resultado", color: "var(--l-result)", where: "consola y reportes" },
+      };
+
+      const SCENARIOS = {
+        web: {
+          label: "Web · Sauce Demo · compra completa",
+          layers: [
+            "cmd",
+            "config",
+            "spec",
+            "fixture",
+            "data",
+            "steps",
+            "pages",
+            "components",
+            "tool",
+            "result",
+          ],
+          steps: [
+            {
+              layer: "cmd",
+              title: "Turbo prepara y lanza Playwright",
+              file: "turbo.json",
+              body: `<p>Turbo lee <code>turbo.json</code>: antes de <code>test:e2e</code> corre el <code>typecheck</code> de cada capa que usa la app. Si una capa no compila, se detiene aquí, sin abrir el navegador.</p><p>Las capas que no cambiaron salen de la caché (<code>cache hit</code>), así que esta etapa suele tardar segundos.</p>`,
+              code: ["web-cmd", "sh"],
+              fail: "Un error de tipos en cualquier capa: Turbo muestra el archivo y la línea, y no corre los tests.",
+            },
+            {
+              layer: "config",
+              title: "La configuración de la app",
+              file: "apps/saucedemo-e2e/playwright.config.ts",
+              body: `<p>La app solo agrega lo propio: Chrome y el atributo de test que usa Sauce Demo (<code>data-test</code>). Lo común (reintentos en CI, reporters, trace, video) viene de <code>libs/utils/playwright.base.ts</code>.</p><p>No hay URL aquí: la pone la fixture desde los datos del ambiente.</p>`,
+              code: ["web-config", "ts"],
+            },
+            {
+              layer: "spec",
+              title: "El spec pide lo que necesita",
+              file: "apps/saucedemo-e2e/checkout.spec.ts",
+              body: `<p>El spec se lee como una frase de negocio: entrar como <em>standard</em>, agregar la mochila, comprar como el cliente estándar y revisar la confirmación.</p><ul><li>No tiene selectores ni credenciales (ESLint lo revisa).</li><li>Lo que está entre <code>{ }</code> —<code>auth</code>, <code>cart</code>, <code>checkout</code>, <code>env</code>, <code>page</code>— lo entregan las fixtures.</li></ul>`,
+              code: ["web-spec", "ts"],
+            },
+            {
+              layer: "fixture",
+              title: "Las fixtures arman las piezas",
+              file: "libs/fixtures/saucedemo/index.ts · base.fixture.ts",
+              body: `<p>Es el único lugar donde se conectan las capas: crea cada step con la <code>page</code> del test y el ambiente cargado.</p><p><code>env</code> tiene <code>scope: "worker"</code>: se carga una vez por proceso y lo comparten todos sus tests. <code>baseURL</code> sale de <code>env.baseUrl</code>, por eso los pages navegan con rutas relativas.</p>`,
+              code: ["web-fixture", "ts"],
+            },
+            {
+              layer: "data",
+              title: "Los datos del ambiente",
+              file: "libs/test-data/saucedemo/",
+              body: `<p><code>loadEnvironment("saucedemo")</code> combina <code>common/*.json</code> con <code>environments/public-demo.json</code> (o el de <code>TEST_ENV</code>), reemplaza las <code>\${VAR}</code> y valida todo con Zod.</p><p>Así el spec dice <code>env.products.backpack</code> y no <code>"Sauce Labs Backpack"</code>. Prueba el simulador en la pestaña <strong>Los datos</strong>.</p>`,
+              code: ["web-data", "ts"],
+              fail: "Archivo inexistente, variable sin definir o un dato que no cumple el esquema: falla antes del primer clic, con un mensaje que dice qué arreglar.",
+            },
+            {
+              layer: "steps",
+              title: 'auth.loginAs("standard")',
+              file: "libs/steps/saucedemo/auth.steps.ts",
+              body: `<p>El step traduce el rol en un usuario real del ambiente y usa el page de login. No conoce selectores: solo llama métodos del page.</p><p>Si el rol no existe, el error lista los roles disponibles, en vez de fallar más adelante con un login vacío.</p>`,
+              code: ["web-auth", "ts"],
+              fail: 'El ambiente no tiene un usuario con rol "standrd". Roles disponibles: standard, lockedOut, problem, …',
+            },
+            {
+              layer: "pages",
+              title: "LoginPage sabe dónde está cada cosa",
+              file: "libs/pages/saucedemo/login.page.ts",
+              body: `<p>Los locators son propiedades <code>readonly</code> con nombre de lo que son. Las acciones básicas (<code>fillUsername</code>, <code>submit</code>) se combinan en una compuesta (<code>login</code>).</p><p>No hace aserciones ni conoce datos: recibe el usuario como parámetro.</p>`,
+              code: ["web-page", "ts"],
+              fail: "Si la app cambia el data-test, el clic espera hasta el timeout y el error dice qué locator no encontró. Se corrige en un solo archivo.",
+            },
+            {
+              layer: "steps",
+              title: "cart.add(env.products.backpack)",
+              file: "libs/steps/saucedemo/cart.steps.ts · pages/saucedemo/inventory.page.ts",
+              body: `<p>El step recibe productos de los datos y le pide al inventario que agregue cada uno por su nombre. El page arma el <code>data-test</code> del botón a partir del nombre.</p>`,
+              code: ["web-cart", "ts"],
+            },
+            {
+              layer: "steps",
+              title: "checkout.completeOrder(cliente)",
+              file: "libs/steps/saucedemo/checkout.steps.ts",
+              body: `<p>Un step puede recorrer varias pantallas: inventario → carrito → datos del cliente → resumen → confirmar.</p><p><code>enterCustomerInfo</code> existe aparte para los escenarios de validación: el spec manda un cliente con un campo vacío y revisa el error, sin terminar la compra.</p>`,
+              code: ["web-checkout", "ts"],
+            },
+            {
+              layer: "components",
+              title: "El Header, compartido",
+              file: "libs/components/saucedemo/header.component.ts",
+              body: `<p>El encabezado aparece en el inventario, el carrito y el checkout. Por eso es un componente: sus locators están una sola vez y cada page lo crea con su contenedor.</p><p>Regla: un locator pasa a <code>components</code> solo cuando lo usan 2 o más pantallas.</p>`,
+              code: ["web-component", "ts"],
+            },
+            {
+              layer: "tool",
+              title: "Playwright ejecuta en Chrome",
+              file: "@playwright/test",
+              body: `<p>Todo lo anterior termina en estas acciones. Playwright espera solo a que cada elemento esté visible y habilitado antes de actuar: por eso no hay <code>waitForTimeout</code> en el repo.</p>`,
+              code: ["web-tool", "sh"],
+            },
+            {
+              layer: "spec",
+              title: "La aserción vuelve al spec",
+              file: "apps/saucedemo-e2e/checkout.spec.ts",
+              body: `<p>Solo el spec decide qué es correcto. Lee una propiedad del page (<code>confirmationTitle</code>) y la compara con el texto esperado de los datos.</p><p>Es una aserción <em>web-first</em>: reintenta sola hasta que se cumple o vence el tiempo.</p>`,
+              code: ["web-assert", "ts"],
+              fail: 'expect(locator).toHaveText(expected) falló, con el texto esperado ("Thank you for your order!") y el recibido.',
+            },
+            {
+              layer: "result",
+              title: "El resultado",
+              file: "test-results/ · playwright-report/",
+              body: `<p>Una línea por test en la consola. Si falla, quedan captura, video y trace para ver qué pasó, y el reporte HTML con todo junto.</p><p>En CI además se genera JUnit y un reporte por shard, que el pipeline une en uno solo.</p>`,
+              code: ["web-result", "sh"],
+              ok: true,
+            },
+          ],
+        },
+        api: {
+          label: "API · Restful Booker · actualizar con token",
+          layers: ["cmd", "config", "spec", "fixture", "data", "steps", "api", "tool", "result"],
+          steps: [
+            {
+              layer: "cmd",
+              title: "Mismo comando, otra app",
+              file: "turbo.json",
+              body: `<p>Las pruebas de API son una app de Playwright más: la misma tarea <code>test:e2e</code> y el mismo <code>typecheck</code> previo.</p>`,
+              code: ["api-cmd", "sh"],
+            },
+            {
+              layer: "config",
+              title: "Un proyecto sin navegador",
+              file: "apps/restful-booker-api/playwright.config.ts",
+              body: `<p>El proyecto <code>api</code> no declara navegador. Como ningún test pide <code>page</code>, Playwright nunca abre Chrome y los 13 tests tardan unos 6 segundos.</p>`,
+              code: ["api-config", "ts"],
+            },
+            {
+              layer: "spec",
+              title: "El spec: preparar, actuar, revisar",
+              file: "apps/restful-booker-api/booking.spec.ts",
+              body: `<p>Tres líneas de preparación y acción, dos de aserción. El spec decide qué estado espera (200), así que el mismo cliente sirve para probar errores (403, 404).</p>`,
+              code: ["api-spec", "ts"],
+            },
+            {
+              layer: "fixture",
+              title: "Fixtures con request",
+              file: "libs/fixtures/restful-booker/index.ts",
+              body: `<p>Las mismas reglas que en web, pero sobre <code>request</code>: los clientes (<code>authApi</code>, <code>bookingApi</code>) para probar endpoints y los steps (<code>auth</code>, <code>bookings</code>) para preparar datos.</p>`,
+              code: ["api-fixture", "ts"],
+            },
+            {
+              layer: "data",
+              title: "Reservas como datos",
+              file: "libs/test-data/restful-booker/",
+              body: `<p>Las reservas de ejemplo están en <code>common/bookings.json</code> y el esquema Zod de <code>test-data</code> las valida al cargar (fechas ISO, precio entero, etc.).</p><p>El test compara la respuesta con el mismo objeto que mandó: un solo origen para lo enviado y lo esperado.</p>`,
+              code: ["api-data", "ts"],
+            },
+            {
+              layer: "steps",
+              title: 'auth.tokenFor("admin")',
+              file: "libs/steps/restful-booker/auth.steps.ts",
+              body: `<p>Pide el token con el usuario del rol. La API responde 200 aunque las credenciales estén mal, así que el step revisa si el cuerpo trae un motivo de falla y, si lo trae, falla con ese motivo.</p>`,
+              code: ["api-auth", "ts"],
+              fail: 'La API no dio token para "admin": Bad credentials.',
+            },
+            {
+              layer: "steps",
+              title: "bookings.create(reserva)",
+              file: "libs/steps/restful-booker/booking.steps.ts",
+              body: `<p>Cada test crea su propia reserva por API. Así no depende de otro test ni del orden, y el step devuelve el id ya validado contra el contrato.</p>`,
+              code: ["api-create", "ts"],
+              fail: "No se pudo crear la reserva: 500 Internal Server Error.",
+            },
+            {
+              layer: "api",
+              title: "El cliente arma la petición",
+              file: "libs/api/restful-booker/booking.client.ts",
+              body: `<p>Es el equivalente de un page object para el backend: sabe el endpoint, el método y las rarezas de la API (el token va en una cookie). Devuelve la respuesta cruda, sin decidir si es correcta.</p>`,
+              code: ["api-client", "ts"],
+            },
+            {
+              layer: "tool",
+              title: "Lo que viaja por HTTP",
+              file: "Playwright APIRequestContext",
+              body: `<p>Tres peticiones: el token, la reserva de preparación y la actualización que se prueba. La <code>baseURL</code> y la cabecera <code>Accept</code> vienen de la configuración.</p>`,
+              code: ["api-tool", "sh"],
+            },
+            {
+              layer: "spec",
+              title: "Estado y contrato",
+              file: "apps/restful-booker-api/booking.spec.ts · libs/api/response.ts",
+              body: `<p><code>parseBody</code> valida el cuerpo con el esquema antes de compararlo. Si la API quita un campo o cambia un tipo, el test falla ahí, con el detalle de Zod, y no más adelante con un <code>undefined</code>.</p>`,
+              code: ["api-assert", "ts"],
+              fail: "La respuesta de https://restful-booker.herokuapp.com/booking/1234 no cumple el contrato: …",
+            },
+            {
+              layer: "result",
+              title: "El resultado",
+              file: "consola",
+              body: `<p>Salida real de una corrida. Los dos bugs conocidos de esta API salen con ✘ pero cuentan como correctos, porque están marcados con <code>test.fail</code>.</p>`,
+              code: ["api-result", "sh"],
+              ok: true,
+            },
+          ],
+        },
+        mobile: {
+          label: "Móvil · My Demo App · login",
+          layers: [
+            "cmd",
+            "config",
+            "spec",
+            "fixture",
+            "data",
+            "steps",
+            "components",
+            "pages",
+            "tool",
+            "result",
+          ],
+          steps: [
+            {
+              layer: "cmd",
+              title: "Otra tarea, otra herramienta",
+              file: "turbo.json · apps/my-demo-app-e2e/package.json",
+              body: `<p>El móvil tiene su propia tarea (<code>test:mobile</code>) porque no corre con Playwright sino con WebdriverIO y Appium. El APK se baja aparte y no se guarda en el repo.</p>`,
+              code: ["mob-cmd", "sh"],
+            },
+            {
+              layer: "config",
+              title: "wdio.conf.ts",
+              file: "apps/my-demo-app-e2e/wdio.conf.ts",
+              body: `<p>Dice qué dispositivo, qué driver y qué app. Appium arranca el emulador si no está encendido. En CI cada archivo se reintenta una vez, porque el servidor de UiAutomator2 a veces se cae en el emulador.</p>`,
+              code: ["mob-config", "ts"],
+              fail: "Si UiAutomator2 se cae (“instrumentation process is not running”), fallan los tests que siguen en ese archivo. Se reinicia el emulador en frío.",
+            },
+            {
+              layer: "spec",
+              title: "El spec en Mocha",
+              file: "apps/my-demo-app-e2e/login.spec.ts",
+              body: `<p>Mismas reglas que en web: sin selectores ni datos escritos. Cambia la sintaxis (<code>describe</code>/<code>it</code> de Mocha) y que <code>expect</code> y <code>driver</code> vienen de <code>@wdio/globals</code>.</p><p>Antes de cada test se borra la app y se abre de nuevo: ningún test depende de otro.</p>`,
+              code: ["mob-spec", "ts"],
+            },
+            {
+              layer: "fixture",
+              title: "myDemoApp(driver)",
+              file: "libs/fixtures/my-demo-app/index.ts",
+              body: `<p>WebdriverIO no tiene fixtures, así que una función hace el mismo trabajo: carga el ambiente, crea los steps y ofrece <code>restartApp</code>.</p>`,
+              code: ["mob-fixture", "ts"],
+            },
+            {
+              layer: "data",
+              title: "Los mismos datos, sin URL",
+              file: "libs/test-data/my-demo-app/",
+              body: `<p>El mismo cargador que web y API. <code>baseUrl</code> es opcional en el esquema porque una app nativa no la tiene.</p>`,
+              code: ["mob-data", "ts"],
+            },
+            {
+              layer: "steps",
+              title: 'auth.loginAs("standard")',
+              file: "libs/steps/my-demo-app/auth.steps.ts",
+              body: `<p>Como en web, pero espera cada pantalla nueva: Android puede mostrar un aviso del sistema justo después de abrirla.</p>`,
+              code: ["mob-auth", "ts"],
+            },
+            {
+              layer: "components",
+              title: "Header y aviso de 16 KB",
+              file: "libs/components/my-demo-app/",
+              body: `<p>El menú está en varias pantallas, así que es un componente. El aviso “This app isn't 16 KB compatible” también: <code>dismissWhileWaitingFor</code> lo cierra si aparece mientras espera la pantalla siguiente.</p>`,
+              code: ["mob-component", "ts"],
+              fail: "Si la pantalla esperada no aparece en 30 s: “La pantalla esperada no apareció.”",
+            },
+            {
+              layer: "pages",
+              title: "LoginScreen",
+              file: "libs/pages/my-demo-app/login.screen.ts",
+              body: `<p>En móvil los elementos son <em>getters</em>: WebdriverIO los busca de nuevo cada vez que se usan. Se buscan por accessibility id (<code>~…</code>) o resource-id, el equivalente Android de un <code>data-testid</code>.</p>`,
+              code: ["mob-page", "ts"],
+            },
+            {
+              layer: "tool",
+              title: "Appium y UiAutomator2",
+              file: "emulador Pixel_10_Pro",
+              body: `<p>WebdriverIO manda comandos a Appium, que los pasa a UiAutomator2 dentro del emulador. Estos son los comandos de este test.</p>`,
+              code: ["mob-tool", "sh"],
+            },
+            {
+              layer: "spec",
+              title: "La aserción",
+              file: "apps/my-demo-app-e2e/login.spec.ts",
+              body: `<p>Vuelve al spec, igual que en web: el título del catálogo debe ser el de <code>env.messages.catalogTitle</code>.</p>`,
+              code: ["mob-assert", "ts"],
+            },
+            {
+              layer: "result",
+              title: "El resultado y la evidencia",
+              file: "apps/my-demo-app-e2e/test-results/",
+              body: `<p>Si algo falla, <code>wdio.conf.ts</code> guarda la captura y el árbol de elementos de la pantalla, el equivalente al screenshot y al trace de Playwright.</p>`,
+              code: ["mob-result", "sh"],
+              ok: true,
+            },
+          ],
+        },
+      };
+
+      let current = "web";
+      let index = 0;
+      let timer = null;
+
+      const scenariosEl = $("#scenarios");
+      Object.entries(SCENARIOS).forEach(([key, s]) => {
+        const b = document.createElement("button");
+        b.className = "chip";
+        b.type = "button";
+        b.textContent = s.label;
+        b.setAttribute("aria-pressed", key === current);
+        b.addEventListener("click", () => {
+          current = key;
+          index = 0;
+          stopPlay();
+          [...scenariosEl.children].forEach((c) => c.setAttribute("aria-pressed", c === b));
+          renderWalk();
+        });
+        scenariosEl.appendChild(b);
+      });
+
+      function renderWalk() {
+        const s = SCENARIOS[current];
+        const step = s.steps[index];
+        const visited = new Set(s.steps.slice(0, index + 1).map((x) => x.layer));
+
+        const stack = $("#stack");
+        stack.innerHTML = "<h3>Capas de este test</h3>";
+        s.layers.forEach((key) => {
+          const L = LAYERS[key];
+          const div = document.createElement("div");
+          div.className =
+            "layer" + (key === step.layer ? " active" : visited.has(key) ? " visited" : "");
+          div.style.setProperty("--c", L.color);
+          div.innerHTML = `<span class="dot"></span>${L.name}<small>${L.where}</small>`;
+          stack.appendChild(div);
+        });
+
+        const L = LAYERS[step.layer];
+        $("#step").innerHTML = `
+          <div class="step-meta">
+            <span class="badge" style="--c:${L.color}">${L.name}</span>
+            <span>Paso ${index + 1} de ${s.steps.length}</span>
+          </div>
+          <h2 class="step-title">${step.title}</h2>
+          <div class="file mono">${step.file}</div>
+          <div class="explain" style="margin-top:12px">${step.body}</div>
+          ${pre(step.code[0], step.code[1])}
+          ${step.fail ? `<div class="callout fail"><strong>Si falla aquí</strong>${esc(step.fail)}</div>` : ""}
+          ${step.ok ? `<div class="callout okc"><strong>Fin del recorrido</strong>Elige otro test arriba para comparar web, API y móvil.</div>` : ""}
+        `;
+
+        $("#prev").disabled = index === 0;
+        $("#next").disabled = index === s.steps.length - 1;
+
+        const dots = $("#dots");
+        dots.innerHTML = "";
+        s.steps.forEach((x, i) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = i === index ? "on" : "";
+          d.title = `Paso ${i + 1}: ${x.title}`;
+          d.setAttribute("aria-label", `Paso ${i + 1}: ${x.title}`);
+          d.addEventListener("click", () => {
+            stopPlay();
+            index = i;
+            renderWalk();
+          });
+          dots.appendChild(d);
+        });
+      }
+
+      function go(delta) {
+        const n = SCENARIOS[current].steps.length;
+        index = Math.min(n - 1, Math.max(0, index + delta));
+        renderWalk();
+      }
+      function stopPlay() {
+        if (timer) clearInterval(timer);
+        timer = null;
+        $("#play").textContent = "▶ Reproducir";
+      }
+      $("#prev").addEventListener("click", () => {
+        stopPlay();
+        go(-1);
+      });
+      $("#next").addEventListener("click", () => {
+        stopPlay();
+        go(1);
+      });
+      $("#play").addEventListener("click", () => {
+        if (timer) return stopPlay();
+        if (index === SCENARIOS[current].steps.length - 1) index = 0;
+        renderWalk();
+        $("#play").textContent = "❚❚ Pausar";
+        timer = setInterval(() => {
+          if (index >= SCENARIOS[current].steps.length - 1) return stopPlay();
+          go(1);
+        }, 4500);
+      });
+      document.addEventListener("keydown", (e) => {
+        if ($("#p-walk").hidden || /input|select|textarea/i.test(e.target.tagName)) return;
+        if (e.key === "ArrowRight") {
+          stopPlay();
+          go(1);
+        }
+        if (e.key === "ArrowLeft") {
+          stopPlay();
+          go(-1);
+        }
+      });
+      renderWalk();
+
+      // ---------- 2. Los datos ----------
+      const FILES = {
+        saucedemo: {
+          common: {
+            customers: { standard: { firstName: "Ana", lastName: "Pérez", postalCode: "28001" } },
+            messages: {
+              inventoryTitle: "Products",
+              usernameRequired: "Epic sadface: Username is required",
+              passwordRequired: "Epic sadface: Password is required",
+              lockedOut: "Epic sadface: Sorry, this user has been locked out.",
+              invalidCredentials:
+                "Epic sadface: Username and password do not match any user in this service",
+              firstNameRequired: "Error: First Name is required",
+              lastNameRequired: "Error: Last Name is required",
+              postalCodeRequired: "Error: Postal Code is required",
+              orderComplete: "Thank you for your order!",
+            },
+            products: {
+              backpack: { name: "Sauce Labs Backpack", price: 29.99 },
+              bikeLight: { name: "Sauce Labs Bike Light", price: 9.99 },
+              boltTShirt: { name: "Sauce Labs Bolt T-Shirt", price: 15.99 },
+              fleeceJacket: { name: "Sauce Labs Fleece Jacket", price: 49.99 },
+              onesie: { name: "Sauce Labs Onesie", price: 7.99 },
+              redTShirt: { name: "Test.allTheThings() T-Shirt (Red)", price: 15.99 },
+            },
+          },
+          env: {
+            baseUrl: "https://www.saucedemo.com",
+            users: {
+              standard: { username: "standard_user", password: "secret_sauce" },
+              lockedOut: { username: "locked_out_user", password: "secret_sauce" },
+              problem: { username: "problem_user", password: "secret_sauce" },
+              performanceGlitch: { username: "performance_glitch_user", password: "secret_sauce" },
+              error: { username: "error_user", password: "secret_sauce" },
+              visual: { username: "visual_user", password: "secret_sauce" },
+              invalid: { username: "standard_user", password: "wrong_password" },
+            },
+          },
+        },
+        "the-internet": {
+          common: {},
+          env: {
+            baseUrl: "https://the-internet.herokuapp.com",
+            users: {
+              standard: { username: "tomsmith", password: "SuperSecretPassword!" },
+              invalid: { username: "wronguser", password: "wrongpassword" },
+            },
+            messages: {
+              loginSuccess: "You logged into a secure area!",
+              invalidUsername: "Your username is invalid!",
+            },
+          },
+        },
+        "restful-booker": {
+          common: {
+            bookings: {
+              standard: {
+                firstname: "Ana",
+                lastname: "Pérez",
+                totalprice: 150,
+                depositpaid: true,
+                bookingdates: { checkin: "2026-12-01", checkout: "2026-12-05" },
+                additionalneeds: "Desayuno",
+              },
+              withoutDeposit: {
+                firstname: "Luis",
+                lastname: "Gómez",
+                totalprice: 80,
+                depositpaid: false,
+                bookingdates: { checkin: "2027-01-10", checkout: "2027-01-12" },
+              },
+              rescheduled: {
+                firstname: "Eva",
+                lastname: "Ruiz",
+                totalprice: 200,
+                depositpaid: false,
+                bookingdates: { checkin: "2027-02-01", checkout: "2027-02-04" },
+                additionalneeds: "Cena",
+              },
+            },
+            messages: { badCredentials: "Bad credentials" },
+          },
+          env: {
+            baseUrl: "https://restful-booker.herokuapp.com",
+            users: {
+              admin: { username: "admin", password: "password123" },
+              invalid: { username: "admin", password: "wrong_password" },
+            },
+          },
+        },
+        "my-demo-app": {
+          common: {
+            messages: {
+              catalogTitle: "Products",
+              cartTitle: "My Cart",
+              usernameRequired: "Username is required",
+              lockedOut: "Sorry this user has been locked out.",
+            },
+            products: { backpack: { name: "Sauce Labs Backpack", price: 29.99 } },
+          },
+          env: {
+            users: {
+              standard: { username: "bod@example.com", password: "10203040" },
+              lockedOut: { username: "alice@example.com", password: "10203040" },
+            },
+          },
+        },
+      };
+
+      const STAGING = {
+        baseUrl: "https://staging.example.com",
+        users: {
+          standard: { username: "qa.standard", password: "${STAGING_STANDARD_PASSWORD}" },
+        },
+      };
+
+      const SCHEMA_KEYS = ["baseUrl", "users", "messages", "customers", "products", "bookings"];
+
+      function isObj(v) {
+        return v !== null && typeof v === "object" && !Array.isArray(v);
+      }
+      function deepMerge(base, over) {
+        if (!isObj(base) || !isObj(over)) return over;
+        const out = { ...base };
+        for (const [k, v] of Object.entries(over)) out[k] = k in base ? deepMerge(base[k], v) : v;
+        return out;
+      }
+      function resolveVars(v, vars) {
+        if (typeof v === "string")
+          return v.replace(/\$\{([A-Z0-9_]+)\}/g, (_, name) => {
+            if (!vars[name]) throw new Error(`Falta la variable de entorno ${name}.`);
+            return vars[name];
+          });
+        if (Array.isArray(v)) return v.map((x) => resolveVars(x, vars));
+        if (isObj(v))
+          return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, resolveVars(x, vars)]));
+        return v;
+      }
+      const json = (o) => JSON.stringify(o, null, 2);
+
+      function simulate() {
+        const product = $("#d-product").value;
+        const envName = $("#d-env").value;
+        const defineVar = $("#d-var").checked;
+        const typo = $("#d-typo").checked;
+        const badUrl = $("#d-url").checked;
+        $("#c-var-wrap").classList.toggle("disabled", envName !== "staging");
+        $("#d-var").disabled = envName !== "staging";
+
+        const src = FILES[product];
+        const common = { ...src.common };
+        if (typo) common.costumers = { standard: { firstName: "Ana" } };
+        let envFile =
+          envName === "staging"
+            ? structuredClone(STAGING)
+            : envName === "public-demo"
+              ? structuredClone(src.env)
+              : null;
+        if (envFile && badUrl && "baseUrl" in envFile) envFile.baseUrl = "saucedemo.com";
+
+        const stages = [
+          { t: "Elegir archivo", d: `environments/${envName}.json` },
+          {
+            t: "Leer common/",
+            d: Object.keys(common).length
+              ? Object.keys(common)
+                  .sort()
+                  .map((k) => k + ".json")
+                  .join(", ")
+              : "no hay archivos",
+          },
+          { t: "Aplicar el ambiente", d: "si una clave está en los dos, gana el ambiente" },
+          { t: "Resolver ${VAR}", d: "desde las variables de entorno" },
+          { t: "Validar con Zod", d: "esquema estricto de schema.ts" },
+          { t: "env listo", d: "fixture env, una vez por worker" },
+        ];
+        let failAt = -1;
+        let error = "";
+        let result = null;
+
+        if (!envFile) {
+          failAt = 0;
+          error = `Error: No existe el ambiente "${envName}" de "${product}". Disponibles: public-demo.`;
+        } else {
+          const merged = deepMerge(common, envFile);
+          try {
+            const resolved = resolveVars(
+              merged,
+              defineVar
+                ? { STAGING_STANDARD_PASSWORD: "<valor de STAGING_STANDARD_PASSWORD>" }
+                : {},
+            );
+            const unknown = Object.keys(resolved).filter((k) => !SCHEMA_KEYS.includes(k));
+            const urlBad =
+              resolved.baseUrl !== undefined && !/^https?:\/\/[^\s/]+/.test(resolved.baseUrl);
+            if (unknown.length || urlBad) {
+              failAt = 4;
+              const detail = [];
+              if (unknown.length)
+                detail.push(`clave desconocida "${unknown[0]}" (el esquema es estricto)`);
+              if (urlBad) detail.push(`"baseUrl" no es una URL válida`);
+              error = `Error: El ambiente "${envName}" de "${product}" no cumple el esquema:\n… detalle de Zod: ${detail.join("; ")}`;
+            } else {
+              result = {};
+              SCHEMA_KEYS.forEach((k) => {
+                if (k in resolved) result[k] = resolved[k];
+                else if (k !== "baseUrl") result[k] = {};
+              });
+            }
+          } catch (e) {
+            failAt = 3;
+            error = "Error: " + e.message;
+          }
+        }
+
+        $("#pipe").innerHTML = stages
+          .map((s, i) => {
+            const cls = failAt === -1 ? "ok" : i < failAt ? "ok" : i === failAt ? "bad" : "skip";
+            const st = cls === "ok" ? "✓ ok" : cls === "bad" ? "✗ falla" : "— no llega";
+            return `<div class="stage ${cls}"><span class="st">${st}</span><b>${i + 1}. ${esc(s.t)}</b>${esc(s.d)}</div>`;
+          })
+          .join("");
+
+        const commonView = Object.keys(common).length
+          ? Object.entries(common)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([k, v]) => `// common/${k}.json\n${json(v)}`)
+              .join("\n\n")
+          : "// este producto no tiene common/";
+        const envView = envFile
+          ? `// environments/${envName}.json${envName === "staging" ? "  (ejemplo, no está en el repo)" : ""}\n${json(envFile)}`
+          : `// environments/${envName}.json\n// el archivo no existe`;
+        $("#files").innerHTML = `
+          <div><h4>Lo que hay en common/</h4><pre class="code"><code>${highlight(commonView, "ts")}</code></pre></div>
+          <div><h4>Lo que hay en el ambiente</h4><pre class="code"><code>${highlight(envView, "ts")}</code></pre></div>`;
+
+        $("#out").innerHTML = result
+          ? `<h4>Lo que recibe el test como <code>env</code></h4><pre class="code"><code>${highlight(json(result), "ts")}</code></pre>
+             <p class="hint">Las claves que faltan (<code>messages</code>, <code>customers</code>…) quedan como <code>{}</code>: el esquema les da ese valor por defecto. ${product === "my-demo-app" ? "No hay <code>baseUrl</code> porque es una app nativa; una fixture web o de API fallaría con “no tiene baseUrl”." : ""}</p>`
+          : `<h4>Lo que ve quien corre el test</h4><div class="err mono">${esc(error)}</div>
+             <p class="hint">El test no llega a abrir el navegador ni la app. ${failAt === 3 ? "El mensaje dice el nombre de la variable, nunca su valor." : ""}</p>`;
+      }
+      ["#d-product", "#d-env", "#d-var", "#d-typo", "#d-url"].forEach((id) =>
+        $(id).addEventListener("change", simulate),
+      );
+      simulate();
+
+      // ---------- 3. El pipeline ----------
+      const NODES = {
+        commit: {
+          lane: "local",
+          t: "git commit",
+          s: "Husky",
+          run: "<code>.husky/pre-commit</code> → <code>lint-staged</code>",
+          does: "Corre <code>eslint --fix</code> y <code>prettier --write</code> solo sobre los archivos en stage, y vuelve a agregarlos al commit.",
+          fails:
+            "Un error de ESLint que no se corrige solo (por ejemplo, un page que importa un step). El commit no se crea.",
+          leaves: "El commit, ya formateado.",
+        },
+        local: {
+          lane: "local",
+          t: "pnpm test:e2e",
+          s: "Turbo + Playwright",
+          run: "<code>turbo run test:e2e</code>",
+          does: "Typecheck de las capas que cambiaron (las demás salen de la caché) y luego Playwright en cada app web y de API.",
+          fails:
+            "Un error de tipos, un test que falla o un <code>test.fail</code> que empezó a pasar.",
+          leaves:
+            "<code>playwright-report/</code> y, si algo falló, <code>test-results/</code> en cada app.",
+        },
+        push: {
+          lane: "local",
+          t: "git push",
+          s: "GitHub",
+          run: "<code>git push origin &lt;rama&gt;</code>",
+          does: "Sube la rama. CircleCI la detecta (una vez conectado) y lanza el workflow <code>qa</code>.",
+          fails: "—",
+          leaves: "La rama en GitHub.",
+        },
+        lint: {
+          lane: "ci",
+          t: "lint",
+          s: "cimg/node",
+          run: "<code>pnpm lint</code> y <code>pnpm format:check</code>",
+          does: "ESLint con las reglas de capas en todos los paquetes, y Prettier sin cambiar archivos.",
+          fails:
+            "Un import entre capas prohibido, un selector en un spec, un <code>expect</code> en un page o un archivo sin formato.",
+          leaves: "Caché de Turbo.",
+        },
+        typecheck: {
+          lane: "ci",
+          t: "typecheck",
+          s: "requiere lint",
+          run: "<code>pnpm typecheck</code>",
+          does: "TypeScript estricto en cada paquete, en orden de dependencias.",
+          fails:
+            "Un error de tipos, por ejemplo un step que llama un método que el page ya no tiene.",
+          leaves: "Caché de Turbo.",
+        },
+        layers: {
+          lane: "ci",
+          t: "test-layers",
+          s: "requiere typecheck",
+          run: "<code>pnpm test:layers</code>",
+          does: "Las 29 pruebas de capas, con page y request simulados. Sin navegador ni red: tardan segundos.",
+          fails:
+            "Un page que cambió sus acciones, un step que cambió el orden, un archivo de datos que no cumple el esquema.",
+          leaves: "Resultados JUnit en la pestaña Tests de CircleCI.",
+        },
+        e2e: {
+          lane: "ci",
+          t: "e2e × 3 apps",
+          s: "2 shards cada una",
+          run: "<code>turbo run test:e2e --only --filter=&lt;app&gt; -- --shard=N/2</code> en la imagen de Playwright",
+          does: "Un job por app (the-internet-e2e, saucedemo-e2e, restful-booker-api), repartido en 2 máquinas. Usa el context <code>qa-e2e</code> para las credenciales. En CI hay 2 reintentos.",
+          fails:
+            "Un test que falla también en sus reintentos. El job guarda el código de salida para publicar resultados aunque falle.",
+          leaves: "JUnit, <code>test-results/</code> como artefacto y un blob report por shard.",
+        },
+        report: {
+          lane: "ci",
+          t: "e2e-report × 3",
+          s: "corre aunque falle e2e",
+          run: "<code>playwright merge-reports --reporter html ./blob-report</code>",
+          does: "Une los blobs de los shards en un solo reporte HTML por app.",
+          fails: "Que falten los blobs (por ejemplo, si e2e no llegó a correr).",
+          leaves: "<code>playwright-report/</code> como artefacto descargable.",
+        },
+        mobile: {
+          lane: "ci",
+          t: "e2e-mobile",
+          s: "pendiente",
+          pending: true,
+          run: "<code>pnpm --filter my-demo-app-e2e app:download</code> y <code>pnpm test:mobile</code>",
+          does: "Comentado en el config: necesita un emulador Android en CI (la imagen machine Android de CircleCI o un proveedor como BrowserStack). Solo en <code>main</code>.",
+          fails: "—",
+          leaves: "—",
+        },
+      };
+
+      function nodeBtn(key) {
+        const n = NODES[key];
+        return `<button class="node${n.pending ? " pending" : ""}" type="button" data-node="${key}" aria-pressed="false">${n.t}<small>${n.s}</small></button>`;
+      }
+      $("#lane-local").innerHTML = ["commit", "local", "push"]
+        .map(nodeBtn)
+        .join('<span class="arrow">→</span>');
+      $("#lane-ci").innerHTML = [
+        nodeBtn("lint"),
+        nodeBtn("typecheck"),
+        nodeBtn("layers"),
+        `<div class="group">${nodeBtn("e2e")}${nodeBtn("mobile")}</div>`,
+        nodeBtn("report"),
+      ].join('<span class="arrow">→</span>');
+
+      function showNode(key) {
+        const n = NODES[key];
+        document
+          .querySelectorAll("[data-node]")
+          .forEach((b) => b.setAttribute("aria-pressed", b.dataset.node === key));
+        $("#node-detail").innerHTML = `
+          <h2 class="step-title">${n.t}</h2>
+          <dl>
+            <dt>Qué corre</dt><dd>${n.run}</dd>
+            <dt>Qué hace</dt><dd>${n.does}</dd>
+            <dt>Qué la hace fallar</dt><dd>${n.fails}</dd>
+            <dt>Qué deja</dt><dd>${n.leaves}</dd>
+          </dl>`;
+      }
+      document
+        .querySelectorAll("[data-node]")
+        .forEach((b) => b.addEventListener("click", () => showNode(b.dataset.node)));
+      showNode("commit");
+
+      // ---------- 4. Reglas de capas ----------
+      const COLS = ["fixtures", "steps", "pages", "api", "components", "test-data", "utils"];
+      const ROWS = [
+        "specs",
+        "fixtures",
+        "steps",
+        "pages",
+        "api",
+        "components",
+        "test-data",
+        "utils",
+      ];
+      const FORBIDDEN = {
+        steps: ["fixtures"],
+        pages: ["api", "steps", "fixtures", "test-data"],
+        api: ["components", "pages", "steps", "fixtures", "test-data"],
+        components: ["pages", "api", "steps", "fixtures", "test-data"],
+        "test-data": ["components", "pages", "api", "steps", "fixtures"],
+        utils: ["components", "pages", "api", "steps", "fixtures"],
+      };
+      const CONVENTION = { specs: ["steps", "test-data", "components", "utils"] };
+      const WHY = {
+        "specs>fixtures":
+          "El spec importa test y expect de fixtures/<producto>. Es la puerta de entrada a todo lo demás.",
+        "specs>pages":
+          "Permitido para las aserciones: el spec lee propiedades del page (confirmationTitle, errorMessage). No busca elementos por su cuenta.",
+        "specs>api":
+          "Permitido para los contratos: parseBody(respuesta, esquema) y los esquemas de libs/api.",
+        "specs>steps":
+          "ESLint no lo impide, pero los steps llegan por fixtures (auth, cart…). Así el spec no los construye ni les pasa la page.",
+        "specs>test-data":
+          "ESLint no lo impide, pero los datos llegan por la fixture env, cargada una vez por worker.",
+        "specs>components":
+          "No hace falta: los componentes se usan a través de un page (inventory.header.cartBadge).",
+        "specs>utils": "utils es para la configuración de Playwright, no para los tests.",
+        "fixtures>steps": "Las fixtures crean los steps con la page o el request del test.",
+        "fixtures>test-data": "base.fixture.ts llama a loadEnvironment una vez por worker.",
+        "fixtures>api": "Las fixtures de restful-booker crean los clientes (authApi, bookingApi).",
+        "fixtures>components": "my-demo-app usa CompatibilityDialog y Header en restartApp.",
+        "fixtures>pages": "Permitido; hoy ninguna fixture lo necesita.",
+        "fixtures>utils": "Permitido.",
+        "steps>fixtures":
+          "Prohibido: un step no sabe cómo se arma el test. Recibe lo que necesita en el constructor.",
+        "steps>pages": "Así trabaja un step: combina page objects.",
+        "steps>api": "Los steps de API usan clientes y parseBody.",
+        "steps>components": "Permitido, por ejemplo CompatibilityDialog en móvil.",
+        "steps>test-data":
+          "Solo los tipos (Environment, Customer, Product). El ambiente ya cargado llega por el constructor.",
+        "steps>utils": "Permitido.",
+        "pages>fixtures": "Prohibido: un page no sabe nada del test.",
+        "pages>steps":
+          "Prohibido: el page es más bajo que el step. Si un page necesita un flujo, ese flujo es un step.",
+        "pages>api": "Prohibido: pantallas y endpoints son capas hermanas y no se conocen.",
+        "pages>test-data":
+          "Prohibido: el page recibe los datos como parámetro. Por eso checkout-info.page.ts declara su propio tipo CustomerInfo.",
+        "pages>components":
+          'Así se reutiliza un bloque: new Header(page.getByTestId("header-container")).',
+        "pages>utils": "Permitido.",
+        "api>components": "Prohibido: un cliente HTTP no tiene interfaz.",
+        "api>pages": "Prohibido: capas hermanas.",
+        "api>steps": "Prohibido: el cliente es más bajo que el step.",
+        "api>fixtures": "Prohibido.",
+        "api>test-data":
+          "Prohibido: el cliente recibe lo que manda como parámetro. Por eso declara BookingPayload.",
+        "api>utils": "Permitido.",
+        "components>pages": "Prohibido: el componente vive dentro de pages, no al revés.",
+        "components>api": "Prohibido.",
+        "components>steps": "Prohibido.",
+        "components>fixtures": "Prohibido.",
+        "components>test-data": "Prohibido: recibe los datos como parámetro, igual que un page.",
+        "components>utils": "Permitido.",
+        "test-data>fixtures": "Prohibido: los datos son la base y no conocen a nadie.",
+        "test-data>steps": "Prohibido.",
+        "test-data>pages": "Prohibido.",
+        "test-data>api": "Prohibido.",
+        "test-data>components": "Prohibido.",
+        "test-data>utils": "Permitido, aunque hoy no lo usa.",
+        "utils>fixtures": "Prohibido: utils es técnico y no conoce el negocio.",
+        "utils>steps": "Prohibido.",
+        "utils>pages": "Prohibido.",
+        "utils>api": "Prohibido.",
+        "utils>components": "Prohibido.",
+        "utils>test-data": "Permitido, aunque hoy no lo usa.",
+      };
+      const ESLINT_MSG =
+        "error  'pages/saucedemo' import is restricted from being used by a pattern. Una capa inferior no conoce a la superior (specs → fixtures → steps → pages | api → components)  no-restricted-imports";
+
+      function cellKind(r, c) {
+        if (r === c) return "same";
+        if ((FORBIDDEN[r] || []).includes(c)) return "no";
+        if ((CONVENTION[r] || []).includes(c)) return "conv";
+        return "ok";
+      }
+      const SYMBOL = { ok: "✓", no: "✗", conv: "~", same: "·" };
+      const table = $("#matrix");
+      table.innerHTML =
+        `<thead><tr><th>importa ↓ / importada →</th>${COLS.map((c) => `<th>${c}</th>`).join("")}</tr></thead>` +
+        "<tbody>" +
+        ROWS.map(
+          (r) =>
+            `<tr><th>${r}</th>${COLS.map((c) => {
+              const k = cellKind(r, c);
+              return `<td><button type="button" class="cell ${k}" data-r="${r}" data-c="${c}" ${k === "same" ? "disabled" : ""} aria-label="${r} importa ${c}">${SYMBOL[k]}</button></td>`;
+            }).join("")}</tr>`,
+        ).join("") +
+        "</tbody>";
+
+      function showCell(r, c) {
+        document
+          .querySelectorAll(".cell")
+          .forEach((b) => b.classList.toggle("sel", b.dataset.r === r && b.dataset.c === c));
+        const k = cellKind(r, c);
+        const label = {
+          ok: "Permitido",
+          no: "ESLint lo prohíbe",
+          conv: "Permitido, pero por convención no se hace",
+        }[k];
+        const why = WHY[`${r}>${c}`] || "Permitido.";
+        const sample =
+          k === "no"
+            ? `<p class="hint">Así se ve el error. El formato es el real; la ruta del import cambia según el caso:</p><pre class="code"><code>${esc(ESLINT_MSG.replace("'pages/saucedemo'", `'${c}/…'`))}</code></pre>`
+            : "";
+        $("#cell-detail").innerHTML =
+          `<div class="step-meta"><span class="badge" style="--c:var(${k === "no" ? "--bad" : k === "conv" ? "--warn" : "--ok"})">${label}</span></div><h2 class="step-title"><code>libs/${r}</code> importa <code>${c}</code></h2><p>${esc(why)}</p>${sample}`;
+      }
+      document
+        .querySelectorAll(".cell:not(.same)")
+        .forEach((b) => b.addEventListener("click", () => showCell(b.dataset.r, b.dataset.c)));
+      showCell("pages", "steps");
+    </script>
+  </body>
+</html>
