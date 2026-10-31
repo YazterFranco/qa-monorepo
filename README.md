@@ -28,6 +28,7 @@ Los 16 tests de Sauce Demo corren en 3 perfiles: Chrome de escritorio, Pixel 7 e
 - [Comandos](#comandos)
 - [Correr todo en Docker](#correr-todo-en-docker)
 - [Simular dispositivos móviles](#simular-dispositivos-móviles)
+- [Trabajar con agentes](#trabajar-con-agentes)
 - [Estructura](#estructura)
 - [Cómo funciona un test, paso a paso](#cómo-funciona-un-test-paso-a-paso)
 - [Dirección de dependencias](#dirección-de-dependencias)
@@ -197,6 +198,17 @@ No reemplaza a un teléfono real: el perfil de Pixel usa Chromium y el de iPhone
 
 Cómo agregar otro teléfono: [CONTRIBUTING.md](CONTRIBUTING.md#agregar-un-teléfono-a-la-emulación-móvil).
 
+## Trabajar con agentes
+
+El repo trae plantillas para agentes de código, sin datos personales:
+
+- [AGENTS.md](AGENTS.md): instrucciones para cualquier agente.
+- [CLAUDE.md](CLAUDE.md): importa `AGENTS.md` y agrega lo propio de Claude Code.
+- [.claude/](.claude): steering por tema, skills, subagentes y permisos.
+- [.mcp.json](.mcp.json): el servidor MCP de Playwright.
+
+La guía para usarlas, agregar las tuyas y dónde va tu información personal está en [docs/agentes.md](docs/agentes.md).
+
 ## Estructura
 
 ```
@@ -216,7 +228,8 @@ libs/                    las capas que comparten todas las apps
 tests-of-layers/         pruebas de cada capa, sin navegador ni red
 docker/                  script que corre la suite en Docker y arma el reporte
 .circleci/               pipeline de CircleCI
-docs/                    flujo.html, curso.html y un reporte de ejemplo
+.claude/                 steering, skills, subagentes y permisos para agentes
+docs/                    flujo.html, curso.html, agentes.md y un reporte de ejemplo
 ```
 
 Archivos de la raíz:

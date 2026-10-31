@@ -9,3 +9,6 @@ playwright/.cache/
 !.env.example
 .DS_Store
 reporte/
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees/
