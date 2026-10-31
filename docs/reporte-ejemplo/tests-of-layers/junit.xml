@@ -1,0 +1,76 @@
+<testsuites id="" name="" tests="29" failures="0" skipped="0" errors="0" time="2.798413">
+<testsuite name="api/restful-booker/booking.client.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="3" failures="0" skipped="0" time="0.018" errors="0">
+<testcase name="api: BookingClient de restful-booker › manda el token en la cookie que espera la API" classname="api/restful-booker/booking.client.test.ts" time="0.014">
+</testcase>
+<testcase name="api: BookingClient de restful-booker › sin token no manda la cookie" classname="api/restful-booker/booking.client.test.ts" time="0.002">
+</testcase>
+<testcase name="api: BookingClient de restful-booker › list pasa los filtros como parámetros de la URL" classname="api/restful-booker/booking.client.test.ts" time="0.002">
+</testcase>
+</testsuite>
+<testsuite name="components/saucedemo/header.component.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="2" failures="0" skipped="0" time="0.003" errors="0">
+<testcase name="components: Header de saucedemo › busca sus elementos dentro del contenedor que recibe" classname="components/saucedemo/header.component.test.ts" time="0.002">
+</testcase>
+<testcase name="components: Header de saucedemo › logout abre el menú y luego elige Logout" classname="components/saucedemo/header.component.test.ts" time="0.001">
+</testcase>
+</testsuite>
+<testsuite name="pages/saucedemo/inventory.page.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="3" failures="0" skipped="0" time="0.004" errors="0">
+<testcase name="pages: InventoryPage de saucedemo › arma el data-test del botón a partir del nombre del producto" classname="pages/saucedemo/inventory.page.test.ts" time="0.001">
+</testcase>
+<testcase name="pages: InventoryPage de saucedemo › sortBy elige la opción por su texto" classname="pages/saucedemo/inventory.page.test.ts" time="0.001">
+</testcase>
+<testcase name="pages: InventoryPage de saucedemo › getPrices convierte los precios a números" classname="pages/saucedemo/inventory.page.test.ts" time="0.002">
+</testcase>
+</testsuite>
+<testsuite name="pages/the-internet/login.page.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="3" failures="0" skipped="0" time="0.003" errors="0">
+<testcase name="pages: LoginPage › goto abre /login relativo a la baseURL" classname="pages/the-internet/login.page.test.ts" time="0.001">
+</testcase>
+<testcase name="pages: LoginPage › login llena usuario y contraseña y envía, en ese orden" classname="pages/the-internet/login.page.test.ts" time="0.001">
+</testcase>
+<testcase name="pages: LoginPage › getFlashMessage devuelve el texto del aviso sin espacios extra" classname="pages/the-internet/login.page.test.ts" time="0.001">
+</testcase>
+</testsuite>
+<testsuite name="steps/restful-booker/auth.steps.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="2" failures="0" skipped="0" time="0.004" errors="0">
+<testcase name="steps: AuthSteps de restful-booker › tokenFor manda las credenciales del rol y devuelve el token" classname="steps/restful-booker/auth.steps.test.ts" time="0.003">
+</testcase>
+<testcase name="steps: AuthSteps de restful-booker › tokenFor falla con el motivo cuando la API rechaza las credenciales" classname="steps/restful-booker/auth.steps.test.ts" time="0.001">
+</testcase>
+</testsuite>
+<testsuite name="steps/saucedemo/checkout.steps.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="3" failures="0" skipped="0" time="0.003" errors="0">
+<testcase name="steps: CartSteps de saucedemo › add agrega cada producto en el orden recibido" classname="steps/saucedemo/checkout.steps.test.ts" time="0.001">
+</testcase>
+<testcase name="steps: CheckoutSteps de saucedemo › completeOrder va del carrito a la confirmación con los datos del cliente" classname="steps/saucedemo/checkout.steps.test.ts" time="0.001">
+</testcase>
+<testcase name="steps: CheckoutSteps de saucedemo › enterCustomerInfo se detiene antes de confirmar la compra" classname="steps/saucedemo/checkout.steps.test.ts" time="0.001">
+</testcase>
+</testsuite>
+<testsuite name="steps/the-internet/auth.steps.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="2" failures="0" skipped="0" time="0.003" errors="0">
+<testcase name="steps: AuthSteps › loginAs abre el login y usa las credenciales del rol" classname="steps/the-internet/auth.steps.test.ts" time="0.001">
+</testcase>
+<testcase name="steps: AuthSteps › loginAs falla con un rol que no existe y lista los disponibles" classname="steps/the-internet/auth.steps.test.ts" time="0.002">
+</testcase>
+</testsuite>
+<testsuite name="test-data/loader.test.ts" timestamp="2026-10-31T18:24:55.668Z" hostname="" tests="11" failures="0" skipped="0" time="0.019" errors="0">
+<testcase name="test-data: datos reales › carga the-internet en public-demo" classname="test-data/loader.test.ts" time="0.004">
+</testcase>
+<testcase name="test-data: datos reales › carga saucedemo en public-demo con sus datos de common/" classname="test-data/loader.test.ts" time="0.004">
+</testcase>
+<testcase name="test-data: loadEnvironment › combina common/ con el ambiente, y el ambiente gana" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › rechaza un ambiente con baseUrl inválida" classname="test-data/loader.test.ts" time="0.003">
+</testcase>
+<testcase name="test-data: loadEnvironment › rechaza un ambiente sin usuarios" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › rechaza claves desconocidas, como un nombre de archivo mal escrito" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › resuelve ${VAR} con las variables de entorno" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › falla si falta una variable referenciada" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › lista los ambientes disponibles si el pedido no existe" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › lista los productos disponibles si el pedido no existe" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+<testcase name="test-data: loadEnvironment › rechaza nombres que salen de la carpeta" classname="test-data/loader.test.ts" time="0.001">
+</testcase>
+</testsuite>
+</testsuites>

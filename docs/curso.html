@@ -2210,10 +2210,11 @@ libs/test-data/
         <section class="lesson" data-part="Lo que te cuida" data-title="El pipeline de CI">
           <p class="kicker">Lección 13 · .circleci</p>
           <h1>El pipeline de CI</h1>
-          <div class="callout warn">
+          <div class="callout good">
             <strong>Estado</strong>
-            <code>ci/circleci/config.yml</code> está escrito, pero todavía no se ha ejecutado en
-            CircleCI: falta conectar el repositorio.
+            <code>.circleci/config.yml</code> corre en CircleCI (plan gratis) con cada push. El
+            primer pipeline pasó los 10 jobs en 3 minutos; el reporte real y las capturas están en
+            <a href="reporte-ejemplo/README.md">docs/reporte-ejemplo</a>.
           </div>
           <ol class="steps">
             <li><strong>lint</strong>: ESLint y Prettier.</li>

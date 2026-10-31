@@ -1,0 +1,50 @@
+<testsuites id="" name="" tests="13" failures="0" skipped="0" errors="0" time="5.258857">
+<testsuite name="auth.spec.ts" timestamp="2026-10-31T18:24:59.636Z" hostname="api" tests="2" failures="0" skipped="0" time="0.564" errors="0">
+<testcase name="admin obtiene un token" classname="auth.spec.ts" time="0.318">
+</testcase>
+<testcase name="credenciales incorrectas no dan token" classname="auth.spec.ts" time="0.246">
+</testcase>
+</testsuite>
+<testsuite name="booking.spec.ts" timestamp="2026-10-31T18:24:59.636Z" hostname="api" tests="11" failures="0" skipped="0" time="1.854" errors="0">
+<testcase name="crear y leer › crear una reserva devuelve su id y los mismos datos" classname="booking.spec.ts" time="0.183">
+</testcase>
+<testcase name="crear y leer › la reserva creada se lee por su id" classname="booking.spec.ts" time="0.191">
+</testcase>
+<testcase name="crear y leer › buscar por nombre encuentra la reserva" classname="booking.spec.ts" time="0.208">
+</testcase>
+<testcase name="crear y leer › una reserva que no existe responde 404" classname="booking.spec.ts" time="0.088">
+</testcase>
+<testcase name="crear y leer › crear con datos incompletos responde 400" classname="booking.spec.ts" time="0.09">
+<properties>
+<property name="fail" value="Bug conocido de Restful Booker: responde 500 en vez de 400">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|booking-crear-y-leer-crear-92710-os-incompletos-responde-400-api/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="modificar y borrar › actualizar sin token responde 403 y no cambia nada" classname="booking.spec.ts" time="0.096">
+</testcase>
+<testcase name="modificar y borrar › actualizar con token cambia todos los campos" classname="booking.spec.ts" time="0.188">
+</testcase>
+<testcase name="modificar y borrar › actualizar quita los campos que no se mandan" classname="booking.spec.ts" time="0.244">
+<properties>
+<property name="fail" value="Bug de Restful Booker: PUT conserva additionalneeds si no se manda">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|booking-modificar-y-borrar-a2c75-los-campos-que-no-se-mandan-api/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="modificar y borrar › la actualización parcial cambia solo el precio" classname="booking.spec.ts" time="0.18">
+</testcase>
+<testcase name="modificar y borrar › borrar con token elimina la reserva" classname="booking.spec.ts" time="0.162">
+</testcase>
+<testcase name="modificar y borrar › borrar con un token inválido responde 403" classname="booking.spec.ts" time="0.224">
+</testcase>
+</testsuite>
+</testsuites>

@@ -378,17 +378,34 @@ Error: No existe el ambiente "staging" de "the-internet". Disponibles: public-de
 
 ## CI
 
-[ci/circleci/config.yml](ci/circleci/config.yml) corre `lint → typecheck → test:layers → test:e2e`, con un job por producto web o de API y sharding de Playwright, y une los reportes en un solo HTML por producto.
+El pipeline está en [.circleci/config.yml](.circleci/config.yml) y corre en [CircleCI](https://app.circleci.com/pipelines/github/YazterFranco/qa-monorepo) con cada push a GitHub. Usa el plan gratis de CircleCI, que da 30,000 créditos al mes y sirve para repos privados.
 
-> **Todavía no se ha ejecutado en CircleCI.** El archivo está escrito y revisado, pero falta conectar el repositorio. Lo menos seguro es el job de reporte, que debe correr aunque fallen los e2e.
+```
+lint → typecheck → test-layers ─┬→ e2e-<producto> (×3, 2 shards cada uno) → e2e-report-<producto> (×3)
+                                └→ docker-e2e
+```
 
-Antes del primer run:
+| Job              | Dónde corre          | Qué hace                                                                    | Qué deja                                          |
+| ---------------- | -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------- |
+| `lint`           | `cimg/node`          | ESLint con las reglas de capas y Prettier                                   | —                                                 |
+| `typecheck`      | `cimg/node`          | TypeScript en todos los paquetes                                            | —                                                 |
+| `test-layers`    | `cimg/node`          | Las 29 pruebas de capas                                                     | Resultados en la pestaña Tests                    |
+| `e2e-<producto>` | imagen de Playwright | Las pruebas de un producto, repartidas en 2 máquinas                        | JUnit, `test-results/` y un blob por máquina      |
+| `e2e-report-…`   | `cimg/node`          | Une los blobs en un HTML; corre aunque fallen los e2e                       | `playwright-report/` como artefacto               |
+| `docker-e2e`     | máquina con Docker   | Construye la imagen del [Dockerfile](Dockerfile) y corre capas y e2e dentro | `reporte/` con `index.html` y un HTML por paquete |
 
-1. Agrega el proyecto en CircleCI desde GitHub.
-2. En Project Settings, apunta la fuente del config a `ci/circleci/config.yml` (CircleCI busca `.circleci/config.yml` por defecto).
-3. Crea el context `qa-e2e` en Organization Settings → Contexts, aunque esté vacío. Ahí van las credenciales.
+**Resultado real:** el primer pipeline pasó los 10 jobs en 3 minutos (59 tests). El reporte completo y las capturas de la corrida están en [docs/reporte-ejemplo](docs/reporte-ejemplo).
 
-El job móvil está escrito como pendiente: necesita un emulador Android en CI.
+![Workflow qa en CircleCI](docs/reporte-ejemplo/capturas/01-workflow.jpg)
+
+Para conectar otro fork o rehacer la conexión, una sola vez:
+
+1. Entra a [app.circleci.com](https://app.circleci.com) con **Log in with GitHub** y autoriza a CircleCI.
+2. En **Projects**, pulsa **Set up** en `qa-monorepo`, elige usar el `.circleci/config.yml` del repo, rama `main`, y pulsa **Set Up Project**. Eso corre el primer pipeline.
+
+Hoy no hace falta ningún secreto: las demos son públicas. Cuando un ambiente use `${VAR}`, crea el context `qa-e2e` (Organization Settings → Contexts), agrégalo a los jobs `e2e` y `docker-e2e` y declara la variable en `passThroughEnv` de `turbo.json`; en `docker-e2e`, pásala también al contenedor con `--env`.
+
+El móvil no corre en CI: el emulador de Android necesita aceleración por hardware, que no existe dentro de Docker.
 
 ## Problemas comunes
 
@@ -427,6 +444,8 @@ El job móvil está escrito como pendiente: necesita un emulador Android en CI.
 | Accessibility id   | El equivalente Android de un `data-testid` (`~View menu`)                                                |
 | Shard              | Una parte de los tests; en CI cada app se reparte en 2 máquinas                                          |
 | Blob report        | Reporte parcial de un shard; el job `e2e-report` los une en un HTML                                      |
+| Artefacto          | Archivo que un job de CircleCI guarda para verlo después, como `reporte/` de `docker-e2e`                |
+| Imagen de Docker   | Sistema empaquetado con Node, navegadores y el monorepo instalado; se construye con el `Dockerfile`      |
 | Page simulada      | `createFakePage()` en `tests-of-layers`: registra las acciones en vez de abrir un navegador              |
 | Caché de Turbo     | Si los archivos de una tarea no cambiaron, Turbo repite su resultado sin volver a correrla               |
 

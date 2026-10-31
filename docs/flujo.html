@@ -822,10 +822,11 @@
           Del commit en tu máquina al reporte del CI. Toca cada caja para ver qué corre, qué la hace
           fallar y qué deja.
         </p>
-        <div class="callout note" style="margin-bottom: 14px">
+        <div class="callout okc" style="margin-bottom: 14px">
           <strong>Estado</strong>
-          El pipeline de CircleCI está escrito en <code>ci/circleci/config.yml</code> pero todavía
-          no se ha ejecutado: falta conectar el repositorio en CircleCI.
+          El pipeline está en <code>.circleci/config.yml</code> y corre en CircleCI con cada push.
+          El primero pasó los 10 jobs en 3 minutos (59 tests); el reporte y las capturas están en
+          <a href="reporte-ejemplo/README.md">docs/reporte-ejemplo</a>.
         </div>
         <div class="lane">
           <h3>En tu máquina</h3>
@@ -2152,7 +2153,7 @@
           t: "git push",
           s: "GitHub",
           run: "<code>git push origin &lt;rama&gt;</code>",
-          does: "Sube la rama. CircleCI la detecta (una vez conectado) y lanza el workflow <code>qa</code>.",
+          does: "Sube la rama. CircleCI la detecta y lanza el workflow <code>qa</code>.",
           fails: "—",
           leaves: "La rama en GitHub.",
         },

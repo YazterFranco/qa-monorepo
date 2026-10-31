@@ -1,0 +1,69 @@
+<testsuites id="" name="" tests="16" failures="0" skipped="0" errors="0" time="22.138977">
+<testsuite name="cart.spec.ts" timestamp="2026-10-31T18:24:59.918Z" hostname="chromium" tests="2" failures="0" skipped="0" time="10.06" errors="0">
+<testcase name="agregar y quitar productos actualiza el carrito" classname="cart.spec.ts" time="2.625">
+</testcase>
+<testcase name="problem_user: algunos productos no se agregan" classname="cart.spec.ts" time="7.435">
+<properties>
+<property name="fail" value="Bug conocido de Sauce Demo: con problem_user algunos botones no hacen nada">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|cart-problem-user-algunos-productos-no-se-agregan-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="checkout.spec.ts" timestamp="2026-10-31T18:24:59.918Z" hostname="chromium" tests="4" failures="0" skipped="0" time="3.101" errors="0">
+<testcase name="compra completa de un producto" classname="checkout.spec.ts" time="0.85">
+</testcase>
+<testcase name="sin nombre no avanza y lo pide" classname="checkout.spec.ts" time="0.792">
+</testcase>
+<testcase name="sin apellido no avanza y lo pide" classname="checkout.spec.ts" time="0.729">
+</testcase>
+<testcase name="sin código postal no avanza y lo pide" classname="checkout.spec.ts" time="0.73">
+</testcase>
+</testsuite>
+<testsuite name="inventory.spec.ts" timestamp="2026-10-31T18:24:59.918Z" hostname="chromium" tests="3" failures="0" skipped="0" time="12.714" errors="0">
+<testcase name="usuario estándar: ordena por precio de menor a mayor" classname="inventory.spec.ts" time="0.571">
+</testcase>
+<testcase name="problem_user: ordena por precio de menor a mayor" classname="inventory.spec.ts" time="5.828">
+<properties>
+<property name="fail" value="Bug conocido de Sauce Demo: el orden no cambia">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-problem-user-ordena-por-precio-de-menor-a-mayor-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="error_user: ordena por precio de menor a mayor" classname="inventory.spec.ts" time="6.315">
+<properties>
+<property name="fail" value="Bug conocido de Sauce Demo: el orden no cambia">
+</property>
+</properties>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|inventory-error-user-ordena-por-precio-de-menor-a-mayor-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="login.spec.ts" timestamp="2026-10-31T18:24:59.918Z" hostname="chromium" tests="7" failures="0" skipped="0" time="10.939" errors="0">
+<testcase name="usuario estándar entra al inventario" classname="login.spec.ts" time="0.579">
+</testcase>
+<testcase name="usuario lento entra al inventario sin esperas fijas" classname="login.spec.ts" time="5.955">
+</testcase>
+<testcase name="usuario bloqueado: no entra y ve el error" classname="login.spec.ts" time="0.678">
+</testcase>
+<testcase name="contraseña incorrecta: no entra y ve el error" classname="login.spec.ts" time="0.654">
+</testcase>
+<testcase name="sin usuario pide el usuario" classname="login.spec.ts" time="0.58">
+</testcase>
+<testcase name="sin contraseña pide la contraseña" classname="login.spec.ts" time="0.61">
+</testcase>
+<testcase name="cerrar sesión vuelve al login" classname="login.spec.ts" time="1.883">
+</testcase>
+</testsuite>
+</testsuites>
