@@ -1,5 +1,5 @@
 # Imagen con todo el monorepo listo para correr las pruebas de capas y las e2e de web y API.
-# El móvil no corre aquí: necesita un emulador Android con aceleración por hardware.
+# La app Android no corre aquí: necesita un emulador con aceleración por hardware.
 #
 #   docker compose run --rm qa        (o: docker build -t qa-monorepo . && docker run --rm --init --ipc=host qa-monorepo)
 #

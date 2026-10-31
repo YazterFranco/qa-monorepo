@@ -894,11 +894,11 @@
     <script type="text/plain" data-code="web-config">
       // apps/saucedemo-e2e/playwright.config.ts
       import { defineConfig } from "@playwright/test";
-      import { basePlaywrightConfig, desktopChromium } from "utils";
+      import { basePlaywrightConfig, desktopChromium, iphone15, pixel7 } from "utils";
 
       export default defineConfig(basePlaywrightConfig, {
         testDir: ".",
-        projects: [desktopChromium],
+        projects: [desktopChromium, pixel7, iphone15],
         use: { testIdAttribute: "data-test" },
       });
     </script>
@@ -1492,7 +1492,7 @@
               layer: "config",
               title: "La configuración de la app",
               file: "apps/saucedemo-e2e/playwright.config.ts",
-              body: `<p>La app solo agrega lo propio: Chrome y el atributo de test que usa Sauce Demo (<code>data-test</code>). Lo común (reintentos en CI, reporters, trace, video) viene de <code>libs/utils/playwright.base.ts</code>.</p><p>No hay URL aquí: la pone la fixture desde los datos del ambiente.</p>`,
+              body: `<p>La app solo agrega lo propio: Chrome, los perfiles de Pixel 7 e iPhone 15 (cada test corre en los 3) y el atributo de test que usa Sauce Demo (<code>data-test</code>). Lo común (reintentos en CI, reporters, trace, video) viene de <code>libs/utils/playwright.base.ts</code>.</p><p>No hay URL aquí: la pone la fixture desde los datos del ambiente.</p>`,
               code: ["web-config", "ts"],
             },
             {
@@ -2228,7 +2228,7 @@
         },
         mobile: {
           lane: "ci",
-          t: "móvil",
+          t: "app Android",
           s: "fuera del CI",
           pending: true,
           run: "<code>pnpm test:mobile</code>, en tu máquina",

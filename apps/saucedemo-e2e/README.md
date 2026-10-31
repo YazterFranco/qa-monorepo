@@ -30,14 +30,21 @@ Los usuarios, clientes, productos y mensajes están en [libs/test-data/saucedemo
 
 Al agregar uno, revisa en el reporte que falle por la aserción esperada (el orden o el contador no cambian) y no por un selector roto.
 
+## Móvil
+
+Cada test corre en 3 perfiles: Chrome de escritorio (`chromium`), Pixel 7 (`pixel-7`) e iPhone 15 (`iphone-15`). Son 16 tests × 3 = 48. Los specs, pages y datos son los mismos; Playwright emula la pantalla, el toque y el navegador, y Sauce Demo responde con su versión móvil.
+
+Los 3 bugs conocidos fallan por la misma aserción en los 3 perfiles.
+
 ## Correr
 
 ```bash
 pnpm turbo run test:e2e --filter=saucedemo-e2e
 pnpm --filter saucedemo-e2e exec playwright test --ui
+pnpm --filter saucedemo-e2e exec playwright test --project=iphone-15
 pnpm --filter saucedemo-e2e exec playwright show-report
 ```
 
-[playwright.config.ts](playwright.config.ts) extiende la base de [libs/utils](../../libs/utils) y pone `testIdAttribute: "data-test"`, el atributo que usa Sauce Demo. La `baseURL` la pone [fixtures/saucedemo](../../libs/fixtures/saucedemo) desde el ambiente de `TEST_ENV`.
+[playwright.config.ts](playwright.config.ts) extiende la base de [libs/utils](../../libs/utils) elige los 3 perfiles y pone `testIdAttribute: "data-test"`, el atributo que usa Sauce Demo. La `baseURL` la pone [fixtures/saucedemo](../../libs/fixtures/saucedemo) desde el ambiente de `TEST_ENV`.
 
 Las reglas de los specs están en [apps/the-internet-e2e/README.md](../the-internet-e2e/README.md#reglas-de-los-specs).

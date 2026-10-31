@@ -6,7 +6,7 @@ import path from "node:path";
 const DESCRIPTIONS = {
   "tests-of-layers": "Capas, sin navegador ni red",
   "the-internet-e2e": "Web · the-internet",
-  "saucedemo-e2e": "Web · Sauce Demo",
+  "saucedemo-e2e": "Web y móvil web · Sauce Demo",
   "restful-booker-api": "API · Restful Booker",
 };
 
@@ -105,7 +105,7 @@ function page() {
     <tr><td>Total</td><td>${total.tests}</td><td class="${ok ? "ok" : "bad"}">${total.failures}</td><td>${total.skipped}</td><td>${total.time.toFixed(1)} s</td></tr>
     </tbody>
   </table></div>
-  <p class="note">Los bugs conocidos, marcados con <code>test.fail</code>, cuentan como correctos mientras sigan fallando. El móvil (Android) no corre en Docker.</p>
+  <p class="note">Los bugs conocidos, marcados con <code>test.fail</code>, cuentan como correctos mientras sigan fallando. La app Android no corre en Docker.</p>
 </main>
 </body>
 </html>

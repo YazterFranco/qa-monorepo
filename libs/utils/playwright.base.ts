@@ -22,3 +22,10 @@ export const basePlaywrightConfig = defineConfig({
 
 /** Proyecto de las apps web. Las de API no lo usan, porque no abren navegador. */
 export const desktopChromium = { name: "chromium", use: { ...devices["Desktop Chrome"] } };
+
+// Emulación móvil: la página web con la pantalla, el toque y el navegador de cada teléfono.
+// No prueba una app nativa; esas están en apps/my-demo-app-e2e.
+export const pixel7 = { name: "pixel-7", use: { ...devices["Pixel 7"] } };
+// Con 8 instancias de WebKit a la vez, en macOS, algunos clics se quedan esperando hasta el
+// timeout; con 2 no pasa. Es el mismo número de workers que en CI.
+export const iphone15 = { name: "iphone-15", workers: 2, use: { ...devices["iPhone 15"] } };

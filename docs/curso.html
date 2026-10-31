@@ -2038,7 +2038,8 @@ libs/test-data/
           <h1>utils y la configuración</h1>
           <p>
             <code>libs/utils</code> guarda lo técnico que no es de negocio. Hoy:
-            <code>basePlaywrightConfig</code> y <code>desktopChromium</code>.
+            <code>basePlaywrightConfig</code> y los proyectos <code>desktopChromium</code>,
+            <code>pixel7</code> e <code>iphone15</code>.
           </p>
           <p class="code-label">libs/utils/playwright.base.ts (resumido)</p>
           <pre class="code" data-src="l11-base"></pre>
@@ -2060,7 +2061,9 @@ libs/test-data/
                 <tr>
                   <td>De una app web</td>
                   <td><code>apps/&lt;producto&gt;-e2e/playwright.config.ts</code></td>
-                  <td>Navegador y <code>testIdAttribute</code></td>
+                  <td>
+                    Navegadores y teléfonos (<code>projects</code>) y <code>testIdAttribute</code>
+                  </td>
                 </tr>
                 <tr>
                   <td>De la app de API</td>
@@ -2080,8 +2083,39 @@ libs/test-data/
             Nada que conozca una pantalla, un endpoint o un flujo. Los clientes de API tienen su
             capa (<code>libs/api</code>), y la URL la pone la fixture desde los datos.
           </div>
+          <h2>Emulación móvil: un test, tres dispositivos</h2>
+          <p>
+            Un <em>proyecto</em> de Playwright es una forma de correr los mismos tests. Sauce Demo
+            tiene tres: <code>chromium</code>, <code>pixel-7</code> e <code>iphone-15</code>. Por
+            eso sus 16 tests son 48 corridas, sin escribir ni un spec nuevo.
+          </p>
+          <pre class="code" data-src="l11-mobile"></pre>
+          <p>
+            Playwright emula la pantalla, la densidad, el identificador del navegador y el toque; la
+            página responde con su versión móvil. Es una emulación, no un teléfono real: prueba la
+            web, no una app nativa, y el iPhone usa WebKit, no el Safari de iOS. La app nativa está
+            en
+            <code>apps/my-demo-app-e2e</code>, con Appium.
+          </p>
           <div class="quiz">
             <h2>Comprueba</h2>
+            <div class="question">
+              <p>Quieres probar Sauce Demo también en un Galaxy S24. ¿Qué cambias?</p>
+              <div class="opts">
+                <button
+                  data-ok
+                  data-why="Es otro perfil: se exporta en utils y se suma a projects. Specs, pages y datos no cambian."
+                >
+                  Agrego un proyecto en <code>utils</code> y lo sumo a <code>projects</code> de la
+                  app
+                </button>
+                <button
+                  data-why="No hace falta: el mismo spec corre en todos los proyectos. Los selectores no dependen del dispositivo."
+                >
+                  Copio los specs a una carpeta para móvil
+                </button>
+              </div>
+            </div>
             <div class="question">
               <p>
                 Quieres 3 reintentos en CI para todas las apps de Playwright. ¿Dónde lo cambias?
@@ -2235,8 +2269,9 @@ libs/test-data/
               genera <code>docker compose run --rm qa</code> en tu máquina.
             </li>
             <li>
-              <strong>Móvil</strong>: fuera del CI. El emulador de Android necesita aceleración por
-              hardware, que no existe dentro de Docker; se corre en local.
+              <strong>App Android</strong>: fuera del CI (la emulación móvil web sí corre, dentro de
+              los e2e de Sauce Demo y de docker-e2e). Su emulador necesita aceleración por hardware,
+              que no existe dentro de Docker; se corre en local.
             </li>
           </ol>
           <p>
@@ -2770,6 +2805,14 @@ libs/test-data/
           video: "retain-on-failure",
         },
       });
+    </script>
+    <script type="text/plain" data-code="l11-mobile">
+      // libs/utils/playwright.base.ts
+      export const pixel7 = { name: "pixel-7", use: { ...devices["Pixel 7"] } };
+      export const iphone15 = { name: "iphone-15", workers: 2, use: { ...devices["iPhone 15"] } };
+
+      // apps/saucedemo-e2e/playwright.config.ts
+      projects: [desktopChromium, pixel7, iphone15],
     </script>
     <script type="text/plain" data-code="l12-eslint">
       # Un page que importa un step

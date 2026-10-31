@@ -10,12 +10,20 @@ Piezas técnicas que no son de negocio: la configuración base de Playwright y, 
 
 La configuración base fija:
 
-- Pruebas en paralelo, solo Chromium por ahora.
+- Pruebas en paralelo.
 - Trace en el primer reintento, screenshot y video solo en los fallos.
 - **Local:** sin reintentos, reporte en consola y HTML.
 - **En CI (`CI` definida):** 2 reintentos, 2 workers, prohíbe `test.only` y genera JUnit y un reporte "blob" por shard, que el pipeline une en un solo HTML.
 
-No fija navegador: las apps web agregan `desktopChromium` en `projects`, y la de API usa un proyecto sin navegador.
+No fija navegador: cada app elige sus `projects`.
+
+| Proyecto          | Nombre      | Qué es                                                               |
+| ----------------- | ----------- | -------------------------------------------------------------------- |
+| `desktopChromium` | `chromium`  | Chrome de escritorio                                                 |
+| `pixel7`          | `pixel-7`   | Emulación móvil de un Pixel 7, con Chromium                          |
+| `iphone15`        | `iphone-15` | Emulación móvil de un iPhone 15, con WebKit y un máximo de 2 workers |
+
+La app de API usa un proyecto sin navegador.
 
 La `baseURL` no va aquí: la pone la fixture de cada producto a partir de su ambiente.
 
@@ -31,11 +39,11 @@ La `baseURL` no va aquí: la pone la fixture de cada producto a partir de su amb
 
 ```ts
 import { defineConfig } from "@playwright/test";
-import { basePlaywrightConfig, desktopChromium } from "utils";
+import { basePlaywrightConfig, desktopChromium, iphone15, pixel7 } from "utils";
 
 export default defineConfig(basePlaywrightConfig, {
   testDir: ".",
-  projects: [desktopChromium],
+  projects: [desktopChromium, pixel7, iphone15],
   use: { testIdAttribute: "data-test" },
 });
 ```

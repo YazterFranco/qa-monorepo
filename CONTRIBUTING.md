@@ -90,6 +90,14 @@ Si el archivo no cumple el esquema o falta una variable, la carga falla antes de
 3. En el spec, toma `env` y los steps de `myDemoApp(driver)` y llama a `restartApp()` en `beforeEach`.
 4. Para ver los ids de una pantalla, abre la app en el emulador y usa Appium Inspector o `adb shell uiautomator dump`.
 
+## Agregar un teléfono a la emulación móvil
+
+1. Busca el nombre del perfil en los `devices` de Playwright, por ejemplo `Galaxy S24`.
+2. Exporta el proyecto en [playwright.base.ts](libs/utils/playwright.base.ts), como `pixel7`, y agrégalo a [index.ts](libs/utils/index.ts).
+3. Súmalo a `projects` en el `playwright.config.ts` de la app. Los specs, pages y datos no cambian.
+4. Si el perfil usa WebKit, ponle `workers: 2`, como `iphone15`: con muchas instancias a la vez, en macOS, los clics se quedan esperando.
+5. Corre `--project=<nombre>` y revisa que los bugs conocidos sigan fallando por la aserción esperada. Un test que solo falle en móvil es un hallazgo: revísalo antes de marcarlo.
+
 ## Agregar un producto
 
 1. **Datos:** crea `libs/test-data/<producto>/environments/public-demo.json` (o el ambiente que corresponda) y, si hace falta, `common/`.
