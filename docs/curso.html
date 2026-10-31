@@ -879,7 +879,8 @@ libs/                    las capas, compartidas por todas las apps
   fixtures/              conectan todo para cada test
   utils/                 configuración base de Playwright
 tests-of-layers/         pruebas de las capas, sin navegador
-ci/circleci/             pipeline
+.circleci/               pipeline de CircleCI
+docker/                  correr la suite en Docker
 docs/                    este curso y el flujo interactivo</pre>
           <h2>Una carpeta por producto en cada capa</h2>
           <p>
@@ -2207,7 +2208,7 @@ libs/test-data/
 
         <!-- ===================== 13 ===================== -->
         <section class="lesson" data-part="Lo que te cuida" data-title="El pipeline de CI">
-          <p class="kicker">Lección 13 · ci/circleci</p>
+          <p class="kicker">Lección 13 · .circleci</p>
           <h1>El pipeline de CI</h1>
           <div class="callout warn">
             <strong>Estado</strong>
@@ -2220,14 +2221,22 @@ libs/test-data/
             <li><strong>test-layers</strong>: las 29 pruebas de capas.</li>
             <li>
               <strong>e2e</strong>: un job por app (the-internet, Sauce Demo, Restful Booker), cada
-              uno repartido en 2 máquinas (shards), con las credenciales del context
-              <code>qa-e2e</code>.
+              uno repartido en 2 máquinas (shards).
             </li>
             <li>
               <strong>e2e-report</strong>: une los reportes de los shards en un HTML por app. Corre
               aunque fallen los e2e, para que puedas ver los fallos.
             </li>
-            <li><strong>Móvil</strong>: pendiente; necesita un emulador Android en CI.</li>
+            <li>
+              <strong>docker-e2e</strong>, en paralelo con los e2e: construye la imagen del
+              <code>Dockerfile</code> y corre dentro las pruebas de capas y las e2e de web y API.
+              Deja un reporte completo en un solo artefacto, <code>reporte/</code>, igual al que
+              genera <code>docker compose run --rm qa</code> en tu máquina.
+            </li>
+            <li>
+              <strong>Móvil</strong>: fuera del CI. El emulador de Android necesita aceleración por
+              hardware, que no existe dentro de Docker; se corre en local.
+            </li>
           </ol>
           <p>
             Cada paso solo corre si el anterior pasó: no tiene sentido gastar minutos de e2e si hay
@@ -2241,9 +2250,10 @@ libs/test-data/
               <div class="opts">
                 <button
                   data-ok
-                  data-why="Las dos listas app: del workflow, la de e2e y la de e2e-report."
+                  data-why="Las dos listas app: del workflow (e2e y e2e-report) y la lista PACKAGES de docker/run-tests.sh, para que entre en el reporte de Docker."
                 >
-                  Agregarla a las dos listas <code>app:</code> del workflow
+                  Agregarla a las listas <code>app:</code> del workflow y a
+                  <code>docker/run-tests.sh</code>
                 </button>
                 <button
                   data-why="Turbo la encuentra sola, pero el workflow de CircleCI tiene la lista de apps escrita."

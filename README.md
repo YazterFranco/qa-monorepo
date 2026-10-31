@@ -26,6 +26,7 @@ Además, [tests-of-layers](tests-of-layers) tiene 29 pruebas de las capas, sin n
 - [Requisitos](#requisitos) e [instalación](#instalación)
 - [Inicio rápido](#inicio-rápido): tu primera corrida y cómo leer el resultado
 - [Comandos](#comandos)
+- [Correr todo en Docker](#correr-todo-en-docker)
 - [Estructura](#estructura)
 - [Cómo funciona un test, paso a paso](#cómo-funciona-un-test-paso-a-paso)
 - [Dirección de dependencias](#dirección-de-dependencias)
@@ -43,6 +44,7 @@ Además, [tests-of-layers](tests-of-layers) tiene 29 pruebas de las capas, sin n
 - Node 24 (está en [.nvmrc](.nvmrc)).
 - pnpm 12.16.1 (está en `packageManager` de [package.json](package.json)).
 - Solo para móvil: Android SDK con un emulador (por defecto `Pixel_10_Pro`) y Java 17 o más. Detalles en [apps/my-demo-app-e2e](apps/my-demo-app-e2e).
+- Opcional: Docker, para correr la suite web y de API sin instalar Node ni navegadores ([Correr todo en Docker](#correr-todo-en-docker)).
 
 ## Instalación
 
@@ -133,6 +135,42 @@ pnpm --filter saucedemo-e2e exec playwright show-report
 pnpm --filter my-demo-app-e2e exec wdio run wdio.conf.ts --spec login.spec.ts
 ```
 
+## Correr todo en Docker
+
+La imagen del [Dockerfile](Dockerfile) parte de la imagen oficial de Playwright (Node y navegadores de la misma versión), instala pnpm y el monorepo. Sirve para correr la suite sin instalar nada más que Docker, y es la misma que usa el job `docker-e2e` de CircleCI.
+
+```bash
+docker compose run --rm qa
+```
+
+Ese comando construye la imagen si hace falta (la primera vez tarda unos minutos), corre `pnpm test:layers` y `pnpm test:e2e` (web y API) con [docker/run-tests.sh](docker/run-tests.sh) y deja el reporte en `reporte/`:
+
+```
+reporte/
+  index.html              resumen: tests, fallidos y tiempo por paquete
+  tests-of-layers/        reporte HTML de Playwright y junit.xml
+  the-internet-e2e/
+  saucedemo-e2e/
+  restful-booker-api/
+```
+
+Abre `reporte/index.html`. Hay un ejemplo real, generado en CircleCI, en [docs/reporte-ejemplo](docs/reporte-ejemplo).
+
+```bash
+# Otro ambiente
+TEST_ENV=staging docker compose run --rm qa
+
+# Otro comando dentro de la imagen
+docker compose run --rm qa pnpm lint
+
+# Reconstruir la imagen después de cambiar dependencias
+docker compose build
+```
+
+- La imagen corre con `CI=true`: misma configuración de Playwright que en CircleCI (2 reintentos, reportes blob y JUnit).
+- El código se copia al construir la imagen: si cambias un archivo, vuelve a construirla (`docker compose build`, que reutiliza la capa de dependencias).
+- El móvil no corre en Docker: el emulador de Android necesita aceleración por hardware.
+
 ## Estructura
 
 ```
@@ -150,21 +188,24 @@ libs/                    las capas que comparten todas las apps
   fixtures/<producto>/   arma env y steps para cada spec
   utils/                 configuración base de Playwright
 tests-of-layers/         pruebas de cada capa, sin navegador ni red
-ci/circleci/             pipeline de CircleCI
-docs/                    flujo.html y curso.html, para aprender el repo
+docker/                  script que corre la suite en Docker y arma el reporte
+.circleci/               pipeline de CircleCI
+docs/                    flujo.html, curso.html y un reporte de ejemplo
 ```
 
 Archivos de la raíz:
 
-| Archivo                                    | Para qué sirve                                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------------------------- |
-| [package.json](package.json)               | Scripts (`pnpm lint`, `pnpm test:e2e`…), versión de pnpm y reglas de lint-staged   |
-| [pnpm-workspace.yaml](pnpm-workspace.yaml) | Qué carpetas son paquetes y el catálogo de versiones compartidas                   |
-| [turbo.json](turbo.json)                   | Tareas, su orden (`dependsOn`), qué se guarda en caché y qué variables pasan       |
-| [tsconfig.base.json](tsconfig.base.json)   | TypeScript estricto y los alias (`pages/saucedemo`, `test-data`…)                  |
-| [eslint.config.mjs](eslint.config.mjs)     | Reglas de capas: qué puede importar cada una y dónde no van selectores ni `expect` |
-| [.husky/pre-commit](.husky/pre-commit)     | Corre lint-staged antes de cada commit                                             |
-| `.prettierrc`, `.editorconfig`, `.nvmrc`   | Formato, estilo del editor y versión de Node                                       |
+| Archivo                                                | Para qué sirve                                                                     |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [package.json](package.json)                           | Scripts (`pnpm lint`, `pnpm test:e2e`…), versión de pnpm y reglas de lint-staged   |
+| [pnpm-workspace.yaml](pnpm-workspace.yaml)             | Qué carpetas son paquetes y el catálogo de versiones compartidas                   |
+| [turbo.json](turbo.json)                               | Tareas, su orden (`dependsOn`), qué se guarda en caché y qué variables pasan       |
+| [tsconfig.base.json](tsconfig.base.json)               | TypeScript estricto y los alias (`pages/saucedemo`, `test-data`…)                  |
+| [eslint.config.mjs](eslint.config.mjs)                 | Reglas de capas: qué puede importar cada una y dónde no van selectores ni `expect` |
+| [.husky/pre-commit](.husky/pre-commit)                 | Corre lint-staged antes de cada commit                                             |
+| [Dockerfile](Dockerfile), [compose.yaml](compose.yaml) | Imagen con todo el monorepo para correr la suite igual en tu máquina y en CI       |
+| [.circleci/config.yml](.circleci/config.yml)           | El pipeline de CircleCI                                                            |
+| `.prettierrc`, `.editorconfig`, `.nvmrc`               | Formato, estilo del editor y versión de Node                                       |
 
 Cada carpeta de `libs/`, `apps/` y `tests-of-layers/` tiene su README con el propósito, las reglas y un ejemplo.
 
@@ -401,6 +442,12 @@ El job móvil está escrito como pendiente: necesita un emulador Android en CI.
 | Nombres de paquetes | Sin prefijos ni `src`; se importan por alias                                            |
 | Bugs conocidos      | El test describe el comportamiento correcto y se marca con `test.fail`                  |
 | TypeScript          | 6.0, porque typescript-eslint todavía no soporta la 7                                   |
+| Gestor de paquetes  | pnpm, con workspaces y catálogo de versiones; uv no aplica (ver abajo)                  |
+| Docker              | La imagen de Playwright de la misma versión, con el monorepo instalado; sin el móvil    |
+
+### ¿Y uv?
+
+[uv](https://docs.astral.sh/uv/) es el gestor de paquetes y entornos de **Python**. Este repo es TypeScript, y ese papel lo cumple pnpm: instala las dependencias desde `pnpm-lock.yaml`, une los paquetes del workspace y fija versiones con el catálogo. Agregar uv solo tendría sentido si se suma código Python, por ejemplo una suite de pruebas de API con pytest; en ese caso viviría en su propia carpeta, con su `pyproject.toml` y su `uv.lock`, y se instalaría también en la imagen de Docker.
 
 ## Contribuir
 

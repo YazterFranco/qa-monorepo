@@ -7,5 +7,7 @@ export default defineConfig({
   testDir: ".",
   testMatch: "**/*.test.ts",
   forbidOnly: isCI,
-  reporter: isCI ? [["list"], ["junit", { outputFile: "test-results/junit.xml" }]] : "list",
+  reporter: isCI
+    ? [["list"], ["junit", { outputFile: "test-results/junit.xml" }], ["blob"]]
+    : "list",
 });

@@ -2205,13 +2205,33 @@
           fails: "Que falten los blobs (por ejemplo, si e2e no llegó a correr).",
           leaves: "<code>playwright-report/</code> como artefacto descargable.",
         },
+        docker: {
+          lane: "ci",
+          t: "docker-e2e",
+          s: "la suite en la imagen",
+          run: "<code>docker build --tag qa-monorepo .</code> y <code>docker run … qa-monorepo</code> en una máquina con Docker",
+          does: "Construye la imagen del <code>Dockerfile</code> y corre dentro <code>docker/run-tests.sh</code>: pruebas de capas y e2e de web y API. Es lo mismo que <code>docker compose run --rm qa</code> en local.",
+          fails:
+            "Un error al construir la imagen (por ejemplo, el lockfile no coincide) o cualquier test que falle.",
+          leaves:
+            "<code>reporte/</code> como artefacto: <code>index.html</code> con el resumen y un reporte HTML y un JUnit por paquete.",
+        },
+        dockerLocal: {
+          lane: "local",
+          t: "docker compose run --rm qa",
+          s: "opcional",
+          run: "<code>docker compose run --rm qa</code>",
+          does: "La misma imagen y el mismo script que el job <code>docker-e2e</code>, sin instalar Node ni navegadores.",
+          fails: "Igual que en CI: un error al construir la imagen o un test que falla.",
+          leaves: "<code>reporte/index.html</code> en tu máquina.",
+        },
         mobile: {
           lane: "ci",
-          t: "e2e-mobile",
-          s: "pendiente",
+          t: "móvil",
+          s: "fuera del CI",
           pending: true,
-          run: "<code>pnpm --filter my-demo-app-e2e app:download</code> y <code>pnpm test:mobile</code>",
-          does: "Comentado en el config: necesita un emulador Android en CI (la imagen machine Android de CircleCI o un proveedor como BrowserStack). Solo en <code>main</code>.",
+          run: "<code>pnpm test:mobile</code>, en tu máquina",
+          does: "No corre en CircleCI: el emulador de Android necesita aceleración por hardware, que no existe dentro de Docker. Se corre en local con el emulador encendido.",
           fails: "—",
           leaves: "—",
         },
@@ -2221,14 +2241,16 @@
         const n = NODES[key];
         return `<button class="node${n.pending ? " pending" : ""}" type="button" data-node="${key}" aria-pressed="false">${n.t}<small>${n.s}</small></button>`;
       }
-      $("#lane-local").innerHTML = ["commit", "local", "push"]
-        .map(nodeBtn)
-        .join('<span class="arrow">→</span>');
+      $("#lane-local").innerHTML = [
+        nodeBtn("commit"),
+        `<div class="group">${nodeBtn("local")}${nodeBtn("dockerLocal")}</div>`,
+        nodeBtn("push"),
+      ].join('<span class="arrow">→</span>');
       $("#lane-ci").innerHTML = [
         nodeBtn("lint"),
         nodeBtn("typecheck"),
         nodeBtn("layers"),
-        `<div class="group">${nodeBtn("e2e")}${nodeBtn("mobile")}</div>`,
+        `<div class="group">${nodeBtn("e2e")}${nodeBtn("docker")}${nodeBtn("mobile")}</div>`,
         nodeBtn("report"),
       ].join('<span class="arrow">→</span>');
 

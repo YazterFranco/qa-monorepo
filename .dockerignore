@@ -1,0 +1,9 @@
+.git
+.DS_Store
+**/node_modules
+**/.turbo
+**/test-results
+**/playwright-report
+**/blob-report
+reporte
+apps/my-demo-app-e2e/app

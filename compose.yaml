@@ -1,0 +1,13 @@
+# docker compose run --rm qa
+#   Construye la imagen si hace falta, corre las pruebas de capas y las e2e de web y API,
+#   y deja el reporte en ./reporte (abre reporte/index.html).
+services:
+  qa:
+    build: .
+    image: qa-monorepo
+    init: true
+    ipc: host
+    environment:
+      TEST_ENV: ${TEST_ENV:-public-demo}
+    volumes:
+      - ./reporte:/repo/reporte

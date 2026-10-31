@@ -97,7 +97,7 @@ Si el archivo no cumple el esquema o falta una variable, la carga falla antes de
 3. **Fixtures:** crea `libs/fixtures/<producto>/index.ts` con `productTest("<producto>").extend({ ... })`, como en [fixtures/saucedemo](libs/fixtures/saucedemo/index.ts).
 4. **App:** crea `apps/<producto>-e2e/` copiando `package.json`, `tsconfig.json` y `playwright.config.ts` de [apps/saucedemo-e2e](apps/saucedemo-e2e) (web) o [apps/restful-booker-api](apps/restful-booker-api) (API), y cambia el `name` del `package.json`. Si el producto usa otro atributo de test, ajusta `testIdAttribute`.
 5. Corre `pnpm install` para registrar la app.
-6. **CI:** en [ci/circleci/config.yml](ci/circleci/config.yml), agrega `<producto>-e2e` a las dos listas `app:` del workflow (`e2e` y `e2e-report`).
+6. **CI:** en [.circleci/config.yml](.circleci/config.yml), agrega `<producto>-e2e` a las dos listas `app:` del workflow (`e2e` y `e2e-report`).
 
 ## Nombres
 

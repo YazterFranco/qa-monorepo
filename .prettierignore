@@ -3,3 +3,5 @@ pnpm-lock.yaml
 **/playwright-report/
 **/blob-report/
 .husky/_/
+reporte/
+docs/reporte-ejemplo/

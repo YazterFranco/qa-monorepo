@@ -54,6 +54,11 @@ export default defineConfig(
     files: ["**/*.{js,mjs}"],
     extends: [tseslint.configs.disableTypeChecked],
   },
+  {
+    // Scripts de Node fuera de los paquetes, como el resumen del reporte de Docker.
+    files: ["docker/**/*.mjs"],
+    languageOptions: { globals: { console: "readonly", process: "readonly" } },
+  },
 
   {
     files: ["**/*.ts"],

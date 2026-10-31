@@ -1,18 +1,22 @@
-# Pipeline de QA: lint → typecheck → test:layers → test:e2e por producto (con sharding) → reporte.
+# Pipeline de QA:
+#   lint → typecheck → test-layers ─┬→ e2e por producto (con sharding) → reporte por producto
+#                                   └→ docker-e2e: la misma suite dentro de la imagen del
+#                                      Dockerfile, con un reporte completo en un solo lugar
 #
-# CircleCI busca .circleci/config.yml por defecto. Para usar esta ruta, en Project Settings →
-# Triggers (integración con la GitHub App) apunta la fuente del config a ci/circleci/config.yml.
+# El móvil (apps/my-demo-app-e2e) no corre aquí: necesita un emulador Android con aceleración
+# por hardware, que no existe dentro de Docker.
 #
-# Secretos: los jobs e2e usan el context "qa-e2e" (Organization Settings → Contexts). Créalo antes
-# del primer run, aunque esté vacío. Cada credencial ${VAR} de test-data va ahí y en el
-# passThroughEnv de test:e2e en turbo.json.
+# Credenciales: hoy no hay ninguna (las demos son públicas). Cuando un ambiente use ${VAR},
+# crea el context "qa-e2e" (Organization Settings → Contexts), agrega `context: qa-e2e` a los
+# jobs e2e y docker-e2e, y declara la variable en passThroughEnv de test:e2e en turbo.json. En
+# docker-e2e, pásala también al contenedor con --env.
 version: 2.1
 
 parameters:
   test_env:
     type: string
     default: public-demo
-    description: Ambiente de libs/test-data/environments que usan los e2e (TEST_ENV).
+    description: Ambiente de libs/test-data/<producto>/environments que usan los e2e (TEST_ENV).
 
 executors:
   node:
@@ -143,6 +147,37 @@ jobs:
           path: apps/<< parameters.app >>/playwright-report
           destination: << parameters.app >>/playwright-report
 
+  docker-e2e:
+    # Máquina virtual con Docker: construye la imagen del Dockerfile y corre la suite dentro,
+    # igual que `docker compose run --rm qa` en local.
+    machine:
+      image: ubuntu-2404:current
+    resource_class: medium
+    environment:
+      TEST_ENV: << pipeline.parameters.test_env >>
+    steps:
+      - checkout
+      - run:
+          name: Construir la imagen
+          command: docker build --tag qa-monorepo .
+      - run:
+          name: Pruebas de capas y e2e dentro de la imagen
+          command: |
+            set +e
+            docker run --name qa --init --ipc=host \
+              --env TEST_ENV --env CIRCLE_SHA1 --env CIRCLE_BUILD_URL --env CIRCLE_BUILD_NUM \
+              qa-monorepo
+            echo $? > /tmp/docker-exit-code
+            docker cp qa:/repo/reporte ./reporte
+      - store_test_results:
+          path: reporte
+      - store_artifacts:
+          path: reporte
+          destination: reporte
+      - run:
+          name: Resultado
+          command: exit "$(cat /tmp/docker-exit-code)"
+
 workflows:
   qa:
     jobs:
@@ -154,7 +189,6 @@ workflows:
       # Un job por producto de apps/. Para agregar uno, súmalo a las dos listas de app.
       - e2e:
           name: e2e-<< matrix.app >>
-          context: qa-e2e
           requires: [test-layers]
           matrix:
             parameters:
@@ -167,13 +201,5 @@ workflows:
           matrix:
             parameters:
               app: [the-internet-e2e, saucedemo-e2e, restful-booker-api]
-      # Móvil (apps/my-demo-app-e2e: Appium + WebdriverIO), solo en ramas principales.
-      # Pendiente: necesita un emulador Android (imagen machine "android" de CircleCI o un
-      # proveedor como BrowserStack App Automate) y correr `pnpm --filter my-demo-app-e2e
-      # app:download` y `pnpm test:mobile`. No está probado en CircleCI.
-      # - e2e-mobile:
-      #     context: qa-e2e
-      #     requires: [test-layers]
-      #     filters:
-      #       branches:
-      #         only: [main]
+      - docker-e2e:
+          requires: [test-layers]
