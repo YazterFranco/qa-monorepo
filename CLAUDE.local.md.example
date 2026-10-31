@@ -1,0 +1,26 @@
+# Preferencias personales
+
+Copia este archivo a `CLAUDE.local.md` y complétalo. Git ignora esa copia, así que aquí sí pueden ir datos tuyos.
+
+```bash
+cp CLAUDE.local.md.example CLAUDE.local.md
+```
+
+## Cómo trabajo
+
+- Idioma de las respuestas: <español>
+- Nivel de detalle que prefiero: <resumen corto | explicación completa>
+- Mi rol: <QA, desarrollo, aprendiendo…>
+
+## Mi entorno
+
+- Emulador de Android: <nombre del AVD>
+- Ambiente que uso por defecto: `TEST_ENV=<ambiente>`
+- Herramientas que tengo o no tengo: <Docker, Xcode…>
+
+## Mis cuentas
+
+- Usuario de GitHub: <usuario>
+- Repositorio o proyecto en CI: <organización>/<repositorio>
+
+No pongas contraseñas ni tokens aquí, aunque el archivo no se suba. Déjalos en variables de entorno o en el llavero de tu sistema, y referencia solo su nombre.

@@ -7,3 +7,8 @@
 **/blob-report
 reporte
 apps/my-demo-app-e2e/app
+.env
+.env.*
+!.env.example
+CLAUDE.local.md
+.claude/settings.local.json
