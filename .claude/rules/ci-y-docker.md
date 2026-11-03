@@ -12,7 +12,8 @@ paths:
 
 - Prueba en local antes de subir: `docker compose run --rm qa` usa la misma imagen y el mismo script que el job `docker-e2e`.
 - Reconstruye la imagen después de cambiar código o dependencias: `docker compose build`.
-- La versión de Playwright debe coincidir en `pnpm-workspace.yaml`, `Dockerfile` y `.circleci/config.yml`.
+- La versión de Playwright debe coincidir en `pnpm-workspace.yaml`, `Dockerfile` y `.circleci/config.yml`; la de pnpm, en `package.json` y `Dockerfile`; la mayor de Node, en `.nvmrc`, `engines` y CircleCI. `pnpm check:versions` lo comprueba y el job `lint` lo corre.
+- El workflow `qa` corre en cada push; `docker-e2e` solo en `main`. El workflow `mobile` (BrowserStack) solo corre con el parámetro `run_mobile=true` y usa el context `qa-browserstack`.
 - Turbo corre en modo estricto: una tarea solo ve las variables declaradas. Si algo funciona en local y no en la imagen, revisa `turbo.json` primero.
 - Una app nueva va en las dos listas `app:` del workflow y en `PACKAGES` de `docker/run-tests.sh`.
 - Nada personal ni secreto entra en la imagen: revisa `.dockerignore` si agregas archivos locales.

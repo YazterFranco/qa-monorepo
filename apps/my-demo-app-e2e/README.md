@@ -1,6 +1,6 @@
 # my-demo-app-e2e
 
-Pruebas móviles nativas de [My Demo App](https://github.com/saucelabs/my-demo-app-android), la app Android de demostración de Sauce Labs. Corren con Appium (driver UiAutomator2) y WebdriverIO con Mocha, en un emulador.
+Pruebas móviles nativas de [My Demo App](https://github.com/saucelabs/my-demo-app-android), la app Android de demostración de Sauce Labs. Corren con Appium (driver UiAutomator2) y WebdriverIO con Mocha, en un emulador de tu máquina o en un dispositivo de [BrowserStack](#correr-en-browserstack). La variable `MOBILE_TARGET` elige dónde: `local` (por defecto) o `browserstack`. Los specs son los mismos.
 
 ## Escenarios
 
@@ -15,6 +15,8 @@ Pruebas móviles nativas de [My Demo App](https://github.com/saucelabs/my-demo-a
 Antes de cada test se borran los datos de la app y se abre de nuevo, así ninguno depende de otro.
 
 ## Requisitos
+
+Para el emulador local (`MOBILE_TARGET=local`):
 
 - Android SDK con un emulador. Por defecto se usa `Pixel_10_Pro`; otro se elige con `ANDROID_AVD`.
 - Java 17 o más.
@@ -37,6 +39,44 @@ pnpm --filter my-demo-app-e2e exec wdio run wdio.conf.ts --spec login.spec.ts
 Si el emulador no está encendido, Appium lo arranca. La primera corrida tarda más porque instala su servidor en el dispositivo; después, cada archivo tarda 1 o 2 minutos.
 
 Si un test o un `beforeEach` falla, quedan una captura y el árbol de la pantalla en `test-results/`.
+
+## Correr en BrowserStack
+
+Sin emulador, Android SDK ni Java: la sesión de Appium corre en un dispositivo real de BrowserStack. WebdriverIO se conecta directo a su servidor, así que no hay dependencias nuevas.
+
+```bash
+# 1. Credenciales, del panel de BrowserStack (App Automate). Nunca van al repo.
+export BROWSERSTACK_USERNAME=<usuario>
+export BROWSERSTACK_ACCESS_KEY=<clave>
+
+# 2. Baja el APK y súbelo. Imprime un bs://..., que es el identificador de la app.
+pnpm --filter my-demo-app-e2e app:download
+export BROWSERSTACK_APP=$(pnpm --filter my-demo-app-e2e --silent app:upload)
+
+# 3. Corre los mismos specs en la nube.
+MOBILE_TARGET=browserstack pnpm test:mobile
+```
+
+BrowserStack guarda cada app subida 30 días. Si no cambió el APK, no hace falta subirlo de nuevo: reutiliza el mismo `BROWSERSTACK_APP`.
+
+| Variable                  | Para qué                                          | Por defecto      |
+| ------------------------- | ------------------------------------------------- | ---------------- |
+| `MOBILE_TARGET`           | `local` o `browserstack`                          | `local`          |
+| `BROWSERSTACK_USERNAME`   | Usuario de BrowserStack (secreto)                 | —, obligatoria   |
+| `BROWSERSTACK_ACCESS_KEY` | Clave de acceso (secreto)                         | —, obligatoria   |
+| `BROWSERSTACK_APP`        | El `bs://...` que imprime `app:upload`            | —, obligatoria   |
+| `BROWSERSTACK_DEVICE`     | Dispositivo, como aparece en BrowserStack         | `Google Pixel 8` |
+| `BROWSERSTACK_OS_VERSION` | Versión de Android                                | `14.0`           |
+| `BROWSERSTACK_PARALLEL`   | Sesiones a la vez; no pases del límite de tu plan | `1`              |
+| `BROWSERSTACK_BUILD`      | Nombre del grupo de sesiones en el panel          | `circleci-<n>`   |
+
+Cada archivo de specs es una sesión y queda marcada como pasada o fallida en el panel de BrowserStack, donde puedes revisarla. Las capturas y el árbol de pantalla de los fallos también se guardan en `test-results/`. Si falta una variable obligatoria, el error dice cuál.
+
+La lógica de elegir dónde corre está en [targets.ts](targets.ts) y [wdio.conf.ts](wdio.conf.ts); el APK se sube con [upload-app.ts](upload-app.ts), que usa la API oficial de BrowserStack.
+
+**En CircleCI** corre el workflow `mobile`, que no se lanza en cada push. Cómo activarlo está en el [README de la raíz](../../README.md#ci).
+
+**Diferencias con el emulador:** la estabilidad de UiAutomator2 y el aviso de 16 KB que se describen en este README se midieron en el emulador `Pixel_10_Pro`; en BrowserStack no se ha medido cuánto cambian. Si cambias de dispositivo con `BROWSERSTACK_DEVICE`, corre primero un solo spec (`--spec login.spec.ts`) para comprobar que su versión de Android no cambia la pantalla.
 
 **Estabilidad:** en el emulador `Pixel_10_Pro` (Android 17) el servidor de UiAutomator2 a veces se cae a mitad de la sesión ("instrumentation process is not running"), y todos los tests que siguen en ese archivo fallan. No es un error de las pruebas: en las verificaciones pasó en 3 de 6 corridas. En CI el archivo se reintenta una vez. Si pasa seguido en local, reinicia el emulador en frío.
 

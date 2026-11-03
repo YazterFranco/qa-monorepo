@@ -2251,8 +2251,10 @@ libs/test-data/
             <a href="reporte-ejemplo/README.md">docs/reporte-ejemplo</a>.
           </div>
           <ol class="steps">
-            <li><strong>lint</strong>: ESLint y Prettier.</li>
-            <li><strong>typecheck</strong>: TypeScript en todos los paquetes.</li>
+            <li><strong>lint</strong>: ESLint, Prettier y <code>pnpm check:versions</code>.</li>
+            <li>
+              <strong>typecheck</strong>: TypeScript en todos los paquetes, a la vez que lint.
+            </li>
             <li><strong>test-layers</strong>: las 29 pruebas de capas.</li>
             <li>
               <strong>e2e</strong>: un job por app (the-internet, Sauce Demo, Restful Booker), cada
@@ -2263,21 +2265,24 @@ libs/test-data/
               aunque fallen los e2e, para que puedas ver los fallos.
             </li>
             <li>
-              <strong>docker-e2e</strong>, en paralelo con los e2e: construye la imagen del
-              <code>Dockerfile</code> y corre dentro las pruebas de capas y las e2e de web y API.
-              Deja un reporte completo en un solo artefacto, <code>reporte/</code>, igual al que
-              genera <code>docker compose run --rm qa</code> en tu máquina.
+              <strong>docker-e2e</strong>, en paralelo con los e2e y solo en <code>main</code>:
+              construye la imagen del <code>Dockerfile</code> y corre dentro las pruebas de capas y
+              las e2e de web y API. Deja un reporte completo en un solo artefacto,
+              <code>reporte/</code>, igual al que genera <code>docker compose run --rm qa</code> en
+              tu máquina.
             </li>
             <li>
-              <strong>App Android</strong>: fuera del CI (la emulación móvil web sí corre, dentro de
-              los e2e de Sauce Demo y de docker-e2e). Su emulador necesita aceleración por hardware,
-              que no existe dentro de Docker; se corre en local.
+              <strong>App Android</strong>: el emulador no corre en el CI, porque necesita
+              aceleración por hardware que no existe dentro de Docker. En BrowserStack corre en un
+              workflow aparte, <code>mobile</code>, que solo se lanza con el parámetro
+              <code>run_mobile</code> en <code>true</code>. La emulación móvil web sí corre, dentro
+              de los e2e de Sauce Demo y de docker-e2e.
             </li>
           </ol>
           <p>
-            Cada paso solo corre si el anterior pasó: no tiene sentido gastar minutos de e2e si hay
-            un error de tipos. El recorrido interactivo está en <a href="flujo.html">flujo.html</a>,
-            pestaña “El pipeline”.
+            Cada paso solo corre si los anteriores pasaron (lint y typecheck corren a la vez): no
+            tiene sentido gastar minutos de e2e si hay un error de tipos. El recorrido interactivo
+            está en <a href="flujo.html">flujo.html</a>, pestaña “El pipeline”.
           </p>
           <div class="quiz">
             <h2>Comprueba</h2>

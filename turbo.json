@@ -24,7 +24,23 @@
     },
     "test:mobile": {
       "dependsOn": ["^typecheck"],
-      "env": ["TEST_ENV", "ANDROID_AVD", "ANDROID_HOME", "JAVA_HOME"],
+      "env": [
+        "TEST_ENV",
+        "ANDROID_AVD",
+        "ANDROID_HOME",
+        "JAVA_HOME",
+        "MOBILE_TARGET",
+        "BROWSERSTACK_DEVICE",
+        "BROWSERSTACK_OS_VERSION",
+        "BROWSERSTACK_PARALLEL"
+      ],
+      "passThroughEnv": [
+        "BROWSERSTACK_USERNAME",
+        "BROWSERSTACK_ACCESS_KEY",
+        "BROWSERSTACK_APP",
+        "BROWSERSTACK_BUILD",
+        "CIRCLE_BUILD_NUM"
+      ],
       "outputs": ["test-results/**"],
       "cache": false
     }

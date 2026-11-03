@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencias"],
+  "packageRules": [
+    {
+      "description": "Playwright está en pnpm-workspace.yaml, el Dockerfile y CircleCI: se actualiza todo junto.",
+      "matchPackageNames": ["@playwright/test", "mcr.microsoft.com/playwright"],
+      "groupName": "playwright"
+    },
+    {
+      "description": "typescript-eslint todavía no soporta TypeScript 7.",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
+    },
+    {
+      "description": "El salto de versión mayor de Node se decide a mano, junto con .nvmrc y engines.",
+      "matchPackageNames": ["cimg/node", "node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
+}

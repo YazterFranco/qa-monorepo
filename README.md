@@ -12,12 +12,12 @@ Se cambia de ambiente con una variable (`TEST_ENV`), sin tocar código. Las cred
 
 Hoy hay cuatro productos de demostración:
 
-| Producto       | Tipo           | App                                                | Qué prueba                                                                | Tests |
-| -------------- | -------------- | -------------------------------------------------- | ------------------------------------------------------------------------- | ----- |
-| the-internet   | Web            | [apps/the-internet-e2e](apps/the-internet-e2e)     | Login de [the-internet.herokuapp.com](https://the-internet.herokuapp.com) | 1     |
-| saucedemo      | Web            | [apps/saucedemo-e2e](apps/saucedemo-e2e)           | Login, inventario, carrito y checkout, con usuarios que simulan fallas    | 48    |
-| restful-booker | API REST       | [apps/restful-booker-api](apps/restful-booker-api) | Token, alta, lectura, búsqueda, actualización y borrado de reservas       | 13    |
-| my-demo-app    | Android nativo | [apps/my-demo-app-e2e](apps/my-demo-app-e2e)       | Login y carrito de la app de demo de Sauce Labs en un emulador            | 5     |
+| Producto       | Tipo           | App                                                | Qué prueba                                                                        | Tests |
+| -------------- | -------------- | -------------------------------------------------- | --------------------------------------------------------------------------------- | ----- |
+| the-internet   | Web            | [apps/the-internet-e2e](apps/the-internet-e2e)     | Login de [the-internet.herokuapp.com](https://the-internet.herokuapp.com)         | 1     |
+| saucedemo      | Web            | [apps/saucedemo-e2e](apps/saucedemo-e2e)           | Login, inventario, carrito y checkout, con usuarios que simulan fallas            | 48    |
+| restful-booker | API REST       | [apps/restful-booker-api](apps/restful-booker-api) | Token, alta, lectura, búsqueda, actualización y borrado de reservas               | 13    |
+| my-demo-app    | Android nativo | [apps/my-demo-app-e2e](apps/my-demo-app-e2e)       | Login y carrito de la app de demo de Sauce Labs, en un emulador o en BrowserStack | 5     |
 
 Los 16 tests de Sauce Demo corren en 3 perfiles: Chrome de escritorio, Pixel 7 e iPhone 15 emulados (16 × 3 = 48). Además, [tests-of-layers](tests-of-layers) tiene 29 pruebas de las capas, sin navegador ni red.
 
@@ -45,7 +45,7 @@ Los 16 tests de Sauce Demo corren en 3 perfiles: Chrome de escritorio, Pixel 7 e
 
 - Node 24 (está en [.nvmrc](.nvmrc)).
 - pnpm 12.16.1 (está en `packageManager` de [package.json](package.json)).
-- Solo para la app Android: Android SDK con un emulador (por defecto `Pixel_10_Pro`) y Java 17 o más. Detalles en [apps/my-demo-app-e2e](apps/my-demo-app-e2e).
+- Solo para la app Android, una de dos: Android SDK con un emulador (por defecto `Pixel_10_Pro`) y Java 17 o más, o una cuenta de BrowserStack para correrla en la nube sin emulador. Detalles en [apps/my-demo-app-e2e](apps/my-demo-app-e2e).
 - Opcional: Docker, para correr la suite web y de API sin instalar Node ni navegadores ([Correr todo en Docker](#correr-todo-en-docker)).
 
 ## Instalación
@@ -106,15 +106,16 @@ pnpm --filter saucedemo-e2e exec playwright test --ui
 
 ## Comandos
 
-| Comando             | Qué hace                                                              |
-| ------------------- | --------------------------------------------------------------------- |
-| `pnpm lint`         | ESLint en todos los paquetes, con las reglas de capas                 |
-| `pnpm format`       | Formatea todo con Prettier                                            |
-| `pnpm format:check` | Revisa el formato sin cambiar archivos                                |
-| `pnpm typecheck`    | TypeScript en modo `strict` en todos los paquetes                     |
-| `pnpm test:layers`  | Pruebas de cada capa, sin navegador ni red                            |
-| `pnpm test:e2e`     | Specs web y de API contra el ambiente de `TEST_ENV`                   |
-| `pnpm test:mobile`  | Specs de Android; necesita el emulador (Appium lo arranca si no está) |
+| Comando               | Qué hace                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`           | ESLint en todos los paquetes, con las reglas de capas                                                              |
+| `pnpm format`         | Formatea todo con Prettier                                                                                         |
+| `pnpm format:check`   | Revisa el formato sin cambiar archivos                                                                             |
+| `pnpm typecheck`      | TypeScript en modo `strict` en todos los paquetes                                                                  |
+| `pnpm test:layers`    | Pruebas de cada capa, sin navegador ni red                                                                         |
+| `pnpm test:e2e`       | Specs web y de API contra el ambiente de `TEST_ENV`                                                                |
+| `pnpm test:mobile`    | Specs de Android: en el emulador (Appium lo arranca si no está) o en BrowserStack con `MOBILE_TARGET=browserstack` |
+| `pnpm check:versions` | Revisa que Playwright, pnpm y Node coincidan en package.json, Dockerfile y CircleCI                                |
 
 Ejemplos:
 
@@ -138,6 +139,12 @@ pnpm --filter saucedemo-e2e exec playwright show-report
 
 # Un solo archivo de la app Android
 pnpm --filter my-demo-app-e2e exec wdio run wdio.conf.ts --spec login.spec.ts
+
+# La app Android en un dispositivo de BrowserStack, sin emulador (ver apps/my-demo-app-e2e)
+export BROWSERSTACK_USERNAME=<usuario> BROWSERSTACK_ACCESS_KEY=<clave>
+pnpm --filter my-demo-app-e2e app:download
+export BROWSERSTACK_APP=$(pnpm --filter my-demo-app-e2e --silent app:upload)
+MOBILE_TARGET=browserstack pnpm test:mobile
 ```
 
 ## Correr todo en Docker
@@ -184,8 +191,8 @@ En este repo hay dos tipos de prueba móvil:
 | ------------- | --------------------------------------------------------------------------- | -------------------------------------------- |
 | Qué prueba    | La página web en la pantalla de un teléfono                                 | La app Android instalada en un dispositivo   |
 | Dónde está    | [apps/saucedemo-e2e](apps/saucedemo-e2e), proyectos `pixel-7` e `iphone-15` | [apps/my-demo-app-e2e](apps/my-demo-app-e2e) |
-| Con qué corre | Playwright, con Chromium y WebKit                                           | Appium, en un emulador de Android            |
-| Dónde corre   | Tu máquina, Docker y CircleCI                                               | Tu máquina, con el emulador                  |
+| Con qué corre | Playwright, con Chromium y WebKit                                           | Appium, en un emulador o en BrowserStack     |
+| Dónde corre   | Tu máquina, Docker y CircleCI                                               | Tu máquina (emulador) y BrowserStack         |
 
 La emulación usa los mismos specs, pages y datos que el escritorio. Playwright le da a cada test la pantalla, la densidad de píxeles, el identificador del navegador y el toque del teléfono, y la página responde como en un móvil: Sauce Demo muestra una sola columna y el filtro como ícono.
 
@@ -227,7 +234,9 @@ libs/                    las capas que comparten todas las apps
   utils/                 configuración base de Playwright
 tests-of-layers/         pruebas de cada capa, sin navegador ni red
 docker/                  script que corre la suite en Docker y arma el reporte
+scripts/                 utilidades de Node del repo, como check-versions.mjs
 .circleci/               pipeline de CircleCI
+.github/                 plantilla de PR, CODEOWNERS (por activar) y Renovate
 .claude/                 steering, skills, subagentes y permisos para agentes
 docs/                    flujo.html, curso.html, agentes.md y un reporte de ejemplo
 ```
@@ -420,18 +429,26 @@ Error: No existe el ambiente "staging" de "the-internet". Disponibles: public-de
 El pipeline está en [.circleci/config.yml](.circleci/config.yml) y corre en [CircleCI](https://app.circleci.com/pipelines/github/YazterFranco/qa-monorepo) con cada push a GitHub. Usa el plan gratis de CircleCI, que da 30,000 créditos al mes y sirve para repos privados.
 
 ```
-lint → typecheck → test-layers ─┬→ e2e-<producto> (×3, 2 shards cada uno) → e2e-report-<producto> (×3)
-                                └→ docker-e2e
+workflow qa (cada push)
+
+lint ──────┐
+           ├→ test-layers ─┬→ e2e-<producto> (×3, 2 shards cada uno) → e2e-report-<producto> (×3)
+typecheck ─┘               └→ docker-e2e (solo en main)
+
+workflow mobile (solo con run_mobile=true)
+
+e2e-mobile-browserstack
 ```
 
-| Job              | Dónde corre          | Qué hace                                                                    | Qué deja                                          |
-| ---------------- | -------------------- | --------------------------------------------------------------------------- | ------------------------------------------------- |
-| `lint`           | `cimg/node`          | ESLint con las reglas de capas y Prettier                                   | —                                                 |
-| `typecheck`      | `cimg/node`          | TypeScript en todos los paquetes                                            | —                                                 |
-| `test-layers`    | `cimg/node`          | Las 29 pruebas de capas                                                     | Resultados en la pestaña Tests                    |
-| `e2e-<producto>` | imagen de Playwright | Las pruebas de un producto, repartidas en 2 máquinas                        | JUnit, `test-results/` y un blob por máquina      |
-| `e2e-report-…`   | `cimg/node`          | Une los blobs en un HTML; corre aunque fallen los e2e                       | `playwright-report/` como artefacto               |
-| `docker-e2e`     | máquina con Docker   | Construye la imagen del [Dockerfile](Dockerfile) y corre capas y e2e dentro | `reporte/` con `index.html` y un HTML por paquete |
+| Job                       | Dónde corre          | Qué hace                                                                                                        | Qué deja                                                       |
+| ------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `lint`                    | `cimg/node`          | ESLint con las reglas de capas, Prettier y `check:versions`                                                     | —                                                              |
+| `typecheck`               | `cimg/node`          | TypeScript en todos los paquetes; corre a la vez que `lint`                                                     | —                                                              |
+| `test-layers`             | `cimg/node`          | Las 29 pruebas de capas                                                                                         | Resultados en la pestaña Tests                                 |
+| `e2e-<producto>`          | imagen de Playwright | Las pruebas de un producto, repartidas en 2 máquinas                                                            | JUnit, `test-results/` y un blob por máquina                   |
+| `e2e-report-…`            | `cimg/node`          | Une los blobs en un HTML; corre aunque fallen los e2e                                                           | `playwright-report/` como artefacto                            |
+| `docker-e2e`              | máquina con Docker   | Solo en `main`: construye la imagen del [Dockerfile](Dockerfile) y corre capas y e2e dentro                     | `reporte/` con `index.html` y un HTML por paquete              |
+| `e2e-mobile-browserstack` | `cimg/node`          | Solo en el workflow `mobile`: baja el APK, lo sube a BrowserStack y corre la app Android en un dispositivo real | `test-results/` con capturas y árbol de pantalla de los fallos |
 
 **Resultado real:** el primer pipeline pasó los 10 jobs en 3 minutos (59 tests). El reporte completo y las capturas de la corrida están en [docs/reporte-ejemplo](docs/reporte-ejemplo). Desde que se agregó la emulación móvil, la suite tiene 91 tests.
 
@@ -442,25 +459,29 @@ Para conectar otro fork o rehacer la conexión, una sola vez:
 1. Entra a [app.circleci.com](https://app.circleci.com) con **Log in with GitHub** y autoriza a CircleCI.
 2. En **Projects**, pulsa **Set up** en `qa-monorepo`, elige usar el `.circleci/config.yml` del repo, rama `main`, y pulsa **Set Up Project**. Eso corre el primer pipeline.
 
-Hoy no hace falta ningún secreto: las demos son públicas. Cuando un ambiente use `${VAR}`, crea el context `qa-e2e` (Organization Settings → Contexts), agrégalo a los jobs `e2e` y `docker-e2e` y declara la variable en `passThroughEnv` de `turbo.json`; en `docker-e2e`, pásala también al contenedor con `--env`.
+Las demos web y de API son públicas y no necesitan secretos. Cuando un ambiente use `${VAR}`, crea el context `qa-e2e` (Organization Settings → Contexts), agrégalo a los jobs `e2e` y `docker-e2e` y declara la variable en `passThroughEnv` de `turbo.json`; en `docker-e2e`, pásala también al contenedor con `--env`.
 
-La emulación móvil web corre dentro de `e2e-saucedemo-e2e` y `docker-e2e`. La app Android no corre en CI: su emulador necesita aceleración por hardware, que no existe dentro de Docker.
+La emulación móvil web corre dentro de `e2e-saucedemo-e2e` y `docker-e2e`. El emulador de Android no corre en CI, porque necesita aceleración por hardware que Docker no tiene; la app Android corre en dispositivos de BrowserStack con el workflow `mobile`.
+
+**Workflow `mobile`.** No corre en cada push: gasta minutos de BrowserStack y necesita credenciales. Para usarlo, una sola vez, crea el context `qa-browserstack` con `BROWSERSTACK_USERNAME` y `BROWSERSTACK_ACCESS_KEY`. Después se lanza a mano (en CircleCI, **Trigger Pipeline** con el parámetro `run_mobile` en `true`) o se programa (**Project Settings → Triggers**, con el mismo parámetro). Mientras `run_mobile` sea `false` (el valor por defecto), solo corre el workflow `qa`.
 
 ## Problemas comunes
 
-| Síntoma                                                         | Causa y solución                                                                                                        |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `Executable doesn't exist` al abrir un navegador                | Faltan los navegadores: `pnpm --filter saucedemo-e2e exec playwright install chromium webkit`                           |
-| `No existe el ambiente "…"`                                     | `TEST_ENV` apunta a un archivo que no está en `environments/`. Revisa el nombre o créalo                                |
-| `Falta la variable de entorno …`                                | Defínela al correr. En CI: agrégala al context `qa-e2e` y a `passThroughEnv` en `turbo.json`                            |
-| `El ambiente no tiene un usuario con rol "…"`                   | El rol tiene un error de tipeo o falta en `users` del ambiente; el mensaje lista los que hay                            |
-| ESLint: `Una capa inferior no conoce a la superior`             | El código está en la capa equivocada. Revisa [¿Dónde va cada cosa?](#dónde-va-cada-cosa) antes de desactivar la regla   |
-| ESLint: `Los selectores van en los page objects`                | Mueve el `getBy*`, `locator` o `$` a un page y exponlo como propiedad                                                   |
-| Un test sale con `✘` pero el resumen dice `passed`              | Es un bug conocido con `test.fail`; está bien                                                                           |
-| El commit se detiene en el hook                                 | ESLint encontró un error que no puede corregir solo; el mensaje dice el archivo y la línea                              |
-| Móvil: no encuentra `app/my-demo-app.apk`                       | Bájalo: `pnpm --filter my-demo-app-e2e app:download`                                                                    |
-| Móvil: `instrumentation process is not running` a mitad del run | El servidor de UiAutomator2 se cayó en el emulador. Reinicia el emulador en frío y vuelve a correr                      |
-| Móvil: aparece "This app isn't 16 KB compatible"                | Es un aviso del sistema; los steps lo cierran. Si una pantalla nueva no lo cierra, usa `CompatibilityDialog` en su step |
+| Síntoma                                                         | Causa y solución                                                                                                                               |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Executable doesn't exist` al abrir un navegador                | Faltan los navegadores: `pnpm --filter saucedemo-e2e exec playwright install chromium webkit`                                                  |
+| `No existe el ambiente "…"`                                     | `TEST_ENV` apunta a un archivo que no está en `environments/`. Revisa el nombre o créalo                                                       |
+| `Falta la variable de entorno …`                                | Defínela al correr. En CI: agrégala al context `qa-e2e` y a `passThroughEnv` en `turbo.json`                                                   |
+| `El ambiente no tiene un usuario con rol "…"`                   | El rol tiene un error de tipeo o falta en `users` del ambiente; el mensaje lista los que hay                                                   |
+| ESLint: `Una capa inferior no conoce a la superior`             | El código está en la capa equivocada. Revisa [¿Dónde va cada cosa?](#dónde-va-cada-cosa) antes de desactivar la regla                          |
+| ESLint: `Los selectores van en los page objects`                | Mueve el `getBy*`, `locator` o `$` a un page y exponlo como propiedad                                                                          |
+| Un test sale con `✘` pero el resumen dice `passed`              | Es un bug conocido con `test.fail`; está bien                                                                                                  |
+| El commit se detiene en el hook                                 | ESLint encontró un error que no puede corregir solo; el mensaje dice el archivo y la línea                                                     |
+| Móvil: no encuentra `app/my-demo-app.apk`                       | Bájalo: `pnpm --filter my-demo-app-e2e app:download`                                                                                           |
+| Móvil: `instrumentation process is not running` a mitad del run | El servidor de UiAutomator2 se cayó en el emulador. Reinicia el emulador en frío y vuelve a correr                                             |
+| Móvil: `Falta la variable de entorno BROWSERSTACK_…`            | Con `MOBILE_TARGET=browserstack` hacen falta `BROWSERSTACK_USERNAME`, `BROWSERSTACK_ACCESS_KEY` y `BROWSERSTACK_APP` (la imprime `app:upload`) |
+| `pnpm check:versions` dice que algo no coincide                 | Una versión se cambió en un solo archivo. Iguala Playwright, pnpm o Node en todos los archivos que lista el mensaje                            |
+| Móvil: aparece "This app isn't 16 KB compatible"                | Es un aviso del sistema; los steps lo cierran. Si una pantalla nueva no lo cierra, usa `CompatibilityDialog` en su step                        |
 
 ## Glosario
 
@@ -492,19 +513,21 @@ La emulación móvil web corre dentro de `e2e-saucedemo-e2e` y `docker-e2e`. La 
 
 ## Decisiones
 
-| Tema                | Decisión                                                                                   |
-| ------------------- | ------------------------------------------------------------------------------------------ |
-| Productos           | Una app por producto en `apps/` y una subcarpeta por producto en cada capa                 |
-| Locators            | Dentro del page object; pasan a `components` solo si se usan en 2 o más lugares            |
-| Selectores          | Web: `getByRole`, `getByLabel` o `data-testid`. Android: accessibility id o resource-id    |
-| Contratos de API    | Cada respuesta se valida con un esquema Zod antes de usarla                                |
-| Nombres de datos    | Por ambiente (`environments/`) o por dominio (`common/`), nunca por uso                    |
-| Nombres de paquetes | Sin prefijos ni `src`; se importan por alias                                               |
-| Bugs conocidos      | El test describe el comportamiento correcto y se marca con `test.fail`                     |
-| TypeScript          | 6.0, porque typescript-eslint todavía no soporta la 7                                      |
-| Gestor de paquetes  | pnpm, con workspaces y catálogo de versiones; uv no aplica (ver abajo)                     |
-| Móvil web           | Emulación con los perfiles de Playwright, sin specs aparte; iPhone con 2 workers           |
-| Docker              | La imagen de Playwright de la misma versión, con el monorepo instalado; sin la app Android |
+| Tema                | Decisión                                                                                                                                          |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Productos           | Una app por producto en `apps/` y una subcarpeta por producto en cada capa                                                                        |
+| Locators            | Dentro del page object; pasan a `components` solo si se usan en 2 o más lugares                                                                   |
+| Selectores          | Web: `getByRole`, `getByLabel` o `data-testid`. Android: accessibility id o resource-id                                                           |
+| Contratos de API    | Cada respuesta se valida con un esquema Zod antes de usarla                                                                                       |
+| Nombres de datos    | Por ambiente (`environments/`) o por dominio (`common/`), nunca por uso                                                                           |
+| Nombres de paquetes | Sin prefijos ni `src`; se importan por alias                                                                                                      |
+| Bugs conocidos      | El test describe el comportamiento correcto y se marca con `test.fail`                                                                            |
+| TypeScript          | 6.0, porque typescript-eslint todavía no soporta la 7                                                                                             |
+| Gestor de paquetes  | pnpm, con workspaces y catálogo de versiones; uv no aplica (ver abajo)                                                                            |
+| Móvil web           | Emulación con los perfiles de Playwright, sin specs aparte; iPhone con 2 workers                                                                  |
+| Docker              | La imagen de Playwright de la misma versión, con el monorepo instalado; sin la app Android                                                        |
+| Móvil nativo        | Appium con WebdriverIO; emulador o BrowserStack según `MOBILE_TARGET`, con conexión directa al servidor de BrowserStack y sin dependencias nuevas |
+| Versiones repetidas | `pnpm check:versions` las compara en package.json, `Dockerfile`, `.nvmrc` y CircleCI; Renovate sube Playwright en un solo PR                      |
 
 ### ¿Y uv?
 
