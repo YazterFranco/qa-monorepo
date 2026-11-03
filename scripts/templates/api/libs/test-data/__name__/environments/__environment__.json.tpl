@@ -1,0 +1,4 @@
+{
+  "baseUrl": "[[url]]",
+  "users": {}
+}

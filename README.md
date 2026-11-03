@@ -29,6 +29,7 @@ Los 16 tests de Sauce Demo corren en 3 perfiles: Chrome de escritorio, Pixel 7 e
 - [Correr todo en Docker](#correr-todo-en-docker)
 - [Simular dispositivos móviles](#simular-dispositivos-móviles)
 - [Trabajar con agentes](#trabajar-con-agentes)
+- [Empezar con tu propio proyecto](docs/empezar.md): tu web, tu app o tus servicios, sin `git clone` y con Bitbucket
 - [Estructura](#estructura)
 - [Cómo funciona un test, paso a paso](#cómo-funciona-un-test-paso-a-paso)
 - [Dirección de dependencias](#dirección-de-dependencias)
@@ -106,16 +107,17 @@ pnpm --filter saucedemo-e2e exec playwright test --ui
 
 ## Comandos
 
-| Comando               | Qué hace                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `pnpm lint`           | ESLint en todos los paquetes, con las reglas de capas                                                              |
-| `pnpm format`         | Formatea todo con Prettier                                                                                         |
-| `pnpm format:check`   | Revisa el formato sin cambiar archivos                                                                             |
-| `pnpm typecheck`      | TypeScript en modo `strict` en todos los paquetes                                                                  |
-| `pnpm test:layers`    | Pruebas de cada capa, sin navegador ni red                                                                         |
-| `pnpm test:e2e`       | Specs web y de API contra el ambiente de `TEST_ENV`                                                                |
-| `pnpm test:mobile`    | Specs de Android: en el emulador (Appium lo arranca si no está) o en BrowserStack con `MOBILE_TARGET=browserstack` |
-| `pnpm check:versions` | Revisa que Playwright, pnpm y Node coincidan en package.json, Dockerfile y CircleCI                                |
+| Comando               | Qué hace                                                                                                                             |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`           | ESLint en todos los paquetes, con las reglas de capas                                                                                |
+| `pnpm format`         | Formatea todo con Prettier                                                                                                           |
+| `pnpm format:check`   | Revisa el formato sin cambiar archivos                                                                                               |
+| `pnpm typecheck`      | TypeScript en modo `strict` en todos los paquetes                                                                                    |
+| `pnpm test:layers`    | Pruebas de cada capa, sin navegador ni red                                                                                           |
+| `pnpm test:e2e`       | Specs web y de API contra el ambiente de `TEST_ENV`                                                                                  |
+| `pnpm test:mobile`    | Specs de Android: en el emulador (Appium lo arranca si no está) o en BrowserStack con `MOBILE_TARGET=browserstack`                   |
+| `pnpm check:versions` | Revisa que Playwright, pnpm y Node coincidan en package.json, Dockerfile y CircleCI                                                  |
+| `pnpm new:app`        | Crea un producto nuevo (web, API o Android) con todas sus capas y lo registra en Docker y CI: ver [docs/empezar.md](docs/empezar.md) |
 
 Ejemplos:
 

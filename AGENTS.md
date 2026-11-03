@@ -29,6 +29,7 @@ docker compose run --rm qa                                    # la suite en Dock
 pnpm test:mobile                                              # app Android: emulador y APK
 MOBILE_TARGET=browserstack pnpm test:mobile                   # app Android en BrowserStack (ver apps/my-demo-app-e2e)
 pnpm check:versions                                           # Playwright, pnpm y Node iguales en todos los archivos
+pnpm new:app <nombre> --tipo web|api|android                  # producto nuevo con sus capas, registrado en Docker y CI
 ```
 
 ## Capas

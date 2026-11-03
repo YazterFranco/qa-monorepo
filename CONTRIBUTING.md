@@ -104,6 +104,8 @@ Si el archivo no cumple el esquema o falta una variable, la carga falla antes de
 
 ## Agregar un producto
 
+El camino corto es `pnpm new:app <nombre> --tipo web|api|android`, que crea todo lo de abajo y lo registra en Docker y CI; después corre `pnpm install` y haz commit del lockfile. Más detalle en [docs/empezar.md](docs/empezar.md). Los pasos manuales, por si necesitas algo distinto:
+
 1. **Datos:** crea `libs/test-data/<producto>/environments/public-demo.json` (o el ambiente que corresponda) y, si hace falta, `common/`.
 2. **Capas:** crea `libs/pages/<producto>/`, `libs/steps/<producto>/` y, si los hay, `libs/components/<producto>/`, cada una con su `index.ts`.
 3. **Fixtures:** crea `libs/fixtures/<producto>/index.ts` con `productTest("<producto>").extend({ ... })`, como en [fixtures/saucedemo](libs/fixtures/saucedemo/index.ts).
