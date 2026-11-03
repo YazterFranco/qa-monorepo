@@ -6,11 +6,11 @@ Instrucciones para agentes de código que trabajan en este repo: Claude Code, Co
 
 Monorepo de automatización de pruebas en TypeScript, con pnpm y Turborepo. Prueba cuatro productos de demostración públicos.
 
-| Tipo            | Herramienta          | Dónde                                         |
-| --------------- | -------------------- | --------------------------------------------- |
-| Web y móvil web | Playwright           | `apps/the-internet-e2e`, `apps/saucedemo-e2e` |
-| API REST        | Playwright `request` | `apps/restful-booker-api`                     |
-| App Android     | Appium y WebdriverIO | `apps/my-demo-app-e2e`                        |
+| Tipo            | Herramienta          | Dónde                                            |
+| --------------- | -------------------- | ------------------------------------------------ |
+| Web y móvil web | Playwright           | `apps/the-internet-e2e`, `apps/saucedemo-e2e`    |
+| API REST        | Playwright `request` | `apps/restful-booker-api`                        |
+| App Android     | Appium y WebdriverIO | `apps/my-demo-app-e2e` (emulador o BrowserStack) |
 
 Las capas compartidas están en `libs/`, y cada carpeta tiene su README con reglas y ejemplos.
 
@@ -27,6 +27,8 @@ pnpm --filter saucedemo-e2e exec playwright test --project=iphone-15 checkout.sp
 pnpm test:e2e                                                 # toda la web y la API
 docker compose run --rm qa                                    # la suite en Docker, con reporte
 pnpm test:mobile                                              # app Android: emulador y APK
+MOBILE_TARGET=browserstack pnpm test:mobile                   # app Android en BrowserStack (ver apps/my-demo-app-e2e)
+pnpm check:versions                                           # Playwright, pnpm y Node iguales en todos los archivos
 ```
 
 ## Capas
@@ -84,7 +86,8 @@ Di qué corrió, qué pasó y qué no pudiste correr. No digas que algo funciona
 - `waitForTimeout` o esperas fijas.
 - Tests que dependan de otro test o del orden.
 - Desactivar reglas de ESLint o de TypeScript para que un cambio pase.
-- Actualizar Playwright solo en un lugar: su versión está en `pnpm-workspace.yaml`, `Dockerfile` y `.circleci/config.yml`.
+- Actualizar Playwright solo en un lugar: su versión está en `pnpm-workspace.yaml`, `Dockerfile` y `.circleci/config.yml` (`pnpm check:versions` lo comprueba).
+- Escribir credenciales de BrowserStack en el repo o lanzar sesiones de más: cuestan minutos del plan.
 - Subir TypeScript a la 7: typescript-eslint todavía no la soporta.
 
 ## Seguridad y privacidad

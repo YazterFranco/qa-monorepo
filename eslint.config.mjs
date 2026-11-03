@@ -56,7 +56,7 @@ export default defineConfig(
   },
   {
     // Scripts de Node fuera de los paquetes, como el resumen del reporte de Docker.
-    files: ["docker/**/*.mjs"],
+    files: ["docker/**/*.mjs", "scripts/**/*.mjs"],
     languageOptions: { globals: { console: "readonly", process: "readonly" } },
   },
 

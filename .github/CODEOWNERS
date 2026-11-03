@@ -1,0 +1,14 @@
+# Quién revisa cada carpeta. Con la regla "Require review from Code Owners" de la protección de
+# la rama main, GitHub pide la revisión de estas personas antes de unir un PR.
+#
+# Está comentado a propósito: este repo no versiona nombres de cuentas (ver
+# .claude/rules/seguridad.md) y un dueño inexistente hace que GitHub marque el archivo con error.
+# Para activarlo, reemplaza <usuario-o-equipo> por un usuario o equipo real de GitHub, por
+# ejemplo @mi-organizacion/qa, y quita el "#" de las líneas.
+#
+# *                    <usuario-o-equipo>
+# /libs/               <usuario-o-equipo>
+# /.circleci/          <usuario-o-equipo>
+# /Dockerfile          <usuario-o-equipo>
+# /docker/             <usuario-o-equipo>
+# /.github/            <usuario-o-equipo>

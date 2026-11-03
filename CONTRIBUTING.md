@@ -7,8 +7,11 @@ pnpm lint
 pnpm format:check
 pnpm typecheck
 pnpm test:layers
+pnpm check:versions
 pnpm test:e2e
 ```
+
+El PR trae una [plantilla](.github/pull_request_template.md) con esta lista. Si cambiaste una versión de Playwright, pnpm o Node, `pnpm check:versions` avisa cuando falta igualarla en el `Dockerfile` o en CircleCI.
 
 Al hacer commit, Husky corre `eslint --fix` y `prettier --write` sobre los archivos en stage. Si ESLint marca un error que no puede corregir solo, el commit se detiene.
 
@@ -89,6 +92,7 @@ Si el archivo no cumple el esquema o falta una variable, la carga falla antes de
 2. Si una navegación abre una pantalla nueva, hazla en un step que espere esa pantalla, como `AuthSteps.openLogin` en [steps/my-demo-app](libs/steps/my-demo-app/auth.steps.ts).
 3. En el spec, toma `env` y los steps de `myDemoApp(driver)` y llama a `restartApp()` en `beforeEach`.
 4. Para ver los ids de una pantalla, abre la app en el emulador y usa Appium Inspector o `adb shell uiautomator dump`.
+5. Los specs no cambian entre el emulador y BrowserStack: `MOBILE_TARGET=browserstack` los corre en la nube. Qué variables hacen falta y cómo subir el APK: [apps/my-demo-app-e2e](apps/my-demo-app-e2e/README.md#correr-en-browserstack).
 
 ## Agregar un teléfono a la emulación móvil
 

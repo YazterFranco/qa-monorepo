@@ -1223,6 +1223,10 @@
     <script type="text/plain" data-code="mob-cmd">
       pnpm --filter my-demo-app-e2e app:download   # una vez: baja el APK a app/
       pnpm test:mobile                             # turbo → wdio run wdio.conf.ts
+
+      # En BrowserStack, sin emulador (hacen falta BROWSERSTACK_USERNAME y BROWSERSTACK_ACCESS_KEY)
+      export BROWSERSTACK_APP=$(pnpm --filter my-demo-app-e2e --silent app:upload)
+      MOBILE_TARGET=browserstack pnpm test:mobile
     </script>
     <script type="text/plain" data-code="mob-config">
       // apps/my-demo-app-e2e/wdio.conf.ts (resumido)
@@ -2229,10 +2233,10 @@
         mobile: {
           lane: "ci",
           t: "app Android",
-          s: "fuera del CI",
+          s: "BrowserStack, opcional",
           pending: true,
-          run: "<code>pnpm test:mobile</code>, en tu máquina",
-          does: "No corre en CircleCI: el emulador de Android necesita aceleración por hardware, que no existe dentro de Docker. Se corre en local con el emulador encendido.",
+          run: "<code>pnpm test:mobile</code> en tu máquina, o <code>MOBILE_TARGET=browserstack pnpm test:mobile</code> en BrowserStack",
+          does: "El emulador no corre en CircleCI: necesita aceleración por hardware, que no existe dentro de Docker. En BrowserStack, el workflow <code>mobile</code> corre la app en un dispositivo real; no se lanza en cada push, solo con <code>run_mobile=true</code>.",
           fails: "—",
           leaves: "—",
         },

@@ -1,15 +1,20 @@
-# Pipeline de QA:
-#   lint → typecheck → test-layers ─┬→ e2e por producto (con sharding) → reporte por producto
-#                                   └→ docker-e2e: la misma suite dentro de la imagen del
-#                                      Dockerfile, con un reporte completo en un solo lugar
+# Workflow "qa" (cada push):
+#   lint ┐
+#        ├→ test-layers ─┬→ e2e por producto (con sharding) → reporte por producto
+#   typecheck ┘          └→ docker-e2e (solo en main): la misma suite dentro de la imagen del
+#                           Dockerfile, con un reporte completo en un solo lugar
 #
-# El móvil (apps/my-demo-app-e2e) no corre aquí: necesita un emulador Android con aceleración
-# por hardware, que no existe dentro de Docker.
+# Workflow "mobile" (solo con run_mobile=true): la app Android en un dispositivo de BrowserStack.
+# No corre en cada push porque gasta minutos de BrowserStack y necesita credenciales. Se lanza a
+# mano (Trigger Pipeline, con el parámetro run_mobile en true) o con un scheduled pipeline.
+# El emulador local no corre aquí: necesita aceleración por hardware, que Docker no tiene.
 #
-# Credenciales: hoy no hay ninguna (las demos son públicas). Cuando un ambiente use ${VAR},
-# crea el context "qa-e2e" (Organization Settings → Contexts), agrega `context: qa-e2e` a los
-# jobs e2e y docker-e2e, y declara la variable en passThroughEnv de test:e2e en turbo.json. En
-# docker-e2e, pásala también al contenedor con --env.
+# Credenciales: las demos web y de API son públicas y no necesitan ninguna.
+#  - Cuando un ambiente use ${VAR}, crea el context "qa-e2e" (Organization Settings → Contexts),
+#    agrega `context: qa-e2e` a los jobs e2e y docker-e2e, y declara la variable en
+#    passThroughEnv de test:e2e en turbo.json. En docker-e2e, pásala también con --env.
+#  - El workflow mobile usa el context "qa-browserstack", con BROWSERSTACK_USERNAME y
+#    BROWSERSTACK_ACCESS_KEY. Créalo antes de lanzar el workflow.
 version: 2.1
 
 parameters:
@@ -17,6 +22,10 @@ parameters:
     type: string
     default: public-demo
     description: Ambiente de libs/test-data/<producto>/environments que usan los e2e (TEST_ENV).
+  run_mobile:
+    type: boolean
+    default: false
+    description: Corre solo el workflow mobile (BrowserStack) en vez del workflow qa.
 
 executors:
   node:
@@ -74,6 +83,9 @@ jobs:
       - run:
           name: Prettier
           command: pnpm format:check
+      - run:
+          name: Versiones iguales en todos los archivos
+          command: pnpm check:versions
       - save-turbo-cache
 
   typecheck:
@@ -178,14 +190,43 @@ jobs:
           name: Resultado
           command: exit "$(cat /tmp/docker-exit-code)"
 
+  e2e-mobile-browserstack:
+    # La app Android en un dispositivo real de BrowserStack, con el mismo Appium y los mismos specs
+    # que el emulador local. Necesita el context qa-browserstack.
+    executor: node
+    environment:
+      TEST_ENV: << pipeline.parameters.test_env >>
+      MOBILE_TARGET: browserstack
+    steps:
+      - install
+      - run:
+          name: Bajar el APK
+          command: pnpm --filter my-demo-app-e2e app:download
+      - run:
+          name: Subir el APK a BrowserStack
+          # La subida imprime solo el bs://...; se guarda para los pasos siguientes.
+          command: |
+            APP_URL=$(pnpm --filter my-demo-app-e2e --silent app:upload)
+            echo "export BROWSERSTACK_APP=${APP_URL}" >> "$BASH_ENV"
+      # --only: el typecheck ya corrió en el workflow qa.
+      - run:
+          name: Appium en BrowserStack
+          command: pnpm turbo run test:mobile --only --filter=my-demo-app-e2e
+      - store_artifacts:
+          path: apps/my-demo-app-e2e/test-results
+          destination: my-demo-app-e2e/test-results
+          when: always
+
 workflows:
   qa:
+    when:
+      not: << pipeline.parameters.run_mobile >>
     jobs:
+      # lint y typecheck no dependen uno del otro: corren a la vez.
       - lint
-      - typecheck:
-          requires: [lint]
+      - typecheck
       - test-layers:
-          requires: [typecheck]
+          requires: [lint, typecheck]
       # Un job por producto de apps/. Para agregar uno, súmalo a las dos listas de app.
       - e2e:
           name: e2e-<< matrix.app >>
@@ -201,5 +242,15 @@ workflows:
           matrix:
             parameters:
               app: [the-internet-e2e, saucedemo-e2e, restful-booker-api]
+      # Repite la suite dentro de la imagen: solo en main, para no gastar minutos en cada rama.
       - docker-e2e:
           requires: [test-layers]
+          filters:
+            branches:
+              only: main
+
+  mobile:
+    when: << pipeline.parameters.run_mobile >>
+    jobs:
+      - e2e-mobile-browserstack:
+          context: qa-browserstack

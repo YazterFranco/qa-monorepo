@@ -6,6 +6,7 @@
     "node": ">=24"
   },
   "scripts": {
+    "check:versions": "node scripts/check-versions.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
