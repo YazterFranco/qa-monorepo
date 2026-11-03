@@ -8,6 +8,8 @@ Monorepo de automatización de pruebas. Reúne en un solo lugar los specs de cad
 
 Se cambia de ambiente con una variable (`TEST_ENV`), sin tocar código. Las credenciales nunca están en el repo.
 
+> **¿Quieres usarlo con tu propia web, app o API?** Lee [docs/empezar.md](docs/empezar.md): cómo conseguirlo sin `git clone`, crear tu producto con `pnpm new:app` y usarlo con Bitbucket.
+
 > **Para aprender cómo funciona:** abre en el navegador [docs/flujo.html](docs/flujo.html) (el recorrido interactivo de un test, de los datos y del pipeline) y [docs/curso.html](docs/curso.html) (un curso por carpeta: qué va en cada una y cómo decidirlo). GitHub los muestra como código; descárgalos o ábrelos desde tu copia local con `open docs/curso.html`.
 
 Hoy hay cuatro productos de demostración:
@@ -107,17 +109,18 @@ pnpm --filter saucedemo-e2e exec playwright test --ui
 
 ## Comandos
 
-| Comando               | Qué hace                                                                                                                             |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `pnpm lint`           | ESLint en todos los paquetes, con las reglas de capas                                                                                |
-| `pnpm format`         | Formatea todo con Prettier                                                                                                           |
-| `pnpm format:check`   | Revisa el formato sin cambiar archivos                                                                                               |
-| `pnpm typecheck`      | TypeScript en modo `strict` en todos los paquetes                                                                                    |
-| `pnpm test:layers`    | Pruebas de cada capa, sin navegador ni red                                                                                           |
-| `pnpm test:e2e`       | Specs web y de API contra el ambiente de `TEST_ENV`                                                                                  |
-| `pnpm test:mobile`    | Specs de Android: en el emulador (Appium lo arranca si no está) o en BrowserStack con `MOBILE_TARGET=browserstack`                   |
-| `pnpm check:versions` | Revisa que Playwright, pnpm y Node coincidan en package.json, Dockerfile y CircleCI                                                  |
-| `pnpm new:app`        | Crea un producto nuevo (web, API o Android) con todas sus capas y lo registra en Docker y CI: ver [docs/empezar.md](docs/empezar.md) |
+| Comando                | Qué hace                                                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm lint`            | ESLint en todos los paquetes, con las reglas de capas                                                                                |
+| `pnpm format`          | Formatea todo con Prettier                                                                                                           |
+| `pnpm format:check`    | Revisa el formato sin cambiar archivos                                                                                               |
+| `pnpm typecheck`       | TypeScript en modo `strict` en todos los paquetes                                                                                    |
+| `pnpm test:layers`     | Pruebas de cada capa, sin navegador ni red                                                                                           |
+| `pnpm test:e2e`        | Specs web y de API contra el ambiente de `TEST_ENV`                                                                                  |
+| `pnpm test:mobile`     | Specs de Android: en el emulador (Appium lo arranca si no está) o en BrowserStack con `MOBILE_TARGET=browserstack`                   |
+| `pnpm check:versions`  | Revisa que Playwright, pnpm y Node coincidan en package.json, Dockerfile y CircleCI                                                  |
+| `pnpm new:app`         | Crea un producto nuevo (web, API o Android) con todas sus capas y lo registra en Docker y CI: ver [docs/empezar.md](docs/empezar.md) |
+| `pnpm remove:examples` | Quita los productos de demostración de tu copia (con `--confirmar`; antes crea el tuyo con `new:app`)                                |
 
 Ejemplos:
 

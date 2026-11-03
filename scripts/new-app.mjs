@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import path from "node:path";
 import { URL } from "node:url";
 import { parseArgs } from "node:util";
+import { appendItems, hasItem } from "./lib/lists.mjs";
 
 const TYPES = {
   web: { suffix: "e2e", label: "Web", registered: true },
@@ -294,21 +295,6 @@ function editList(text, pattern, additions, marker, separator = ", ") {
     text: text.replace(pattern, `$1${appendItems(match[2], additions, separator)}$3`),
     status: "cambiado",
   };
-}
-
-function appendItems(body, additions, separator = ", ") {
-  if (!body.includes("\n")) {
-    return body.trim() === ""
-      ? additions.join(separator)
-      : `${body}${separator}${additions.join(separator)}`;
-  }
-  const indent = body.match(/^\n?( +)/)?.[1] ?? "  ";
-  const lines = additions.map((item) => `${indent}${item},\n`).join("");
-  return `${body.replace(/\s*$/, "\n")}${lines}`;
-}
-
-function hasItem(body, item) {
-  return body.split(/[,\n]/).some((entry) => entry.trim() === item);
 }
 
 function applyRegistration(root, registration) {

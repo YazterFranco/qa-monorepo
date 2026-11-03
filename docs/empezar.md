@@ -126,14 +126,22 @@ Si falta una variable, el error dice cuál. En el CI van en un _context_ de Circ
 
 ## 5. Quitar los ejemplos
 
-Hazlo después de crear tu primer producto, para que las listas del CI no queden vacías.
+Hazlo después de crear tu primer producto web o de API, para que las listas del CI no queden vacías. El comando se niega si todavía no tienes uno.
 
-1. Borra las apps `apps/the-internet-e2e`, `apps/saucedemo-e2e`, `apps/restful-booker-api` y `apps/my-demo-app-e2e`.
-2. Borra sus carpetas en `libs/pages`, `libs/steps`, `libs/fixtures`, `libs/test-data`, `libs/components` y `libs/api` (según el producto, no todas existen en todas las capas), y las de `tests-of-layers`.
-3. En `tests-of-layers/test-data/loader.test.ts`, quita el bloque "datos reales", que carga los ejemplos.
-4. Quita los ejemplos de `PACKAGES` en `docker/run-tests.sh`, de `DESCRIPTIONS` en `docker/summary.mjs`, de las dos listas `app:` en `.circleci/config.yml` y de `MOBILE` en `eslint.config.mjs`. Si borras la app Android de ejemplo, quita también el workflow `mobile` o ajusta su `--filter`.
-5. Los READMEs de cada capa y `docs/curso.html` y `docs/flujo.html` usan los ejemplos para enseñar. Puedes conservarlos como material o borrarlos; `docs/reporte-ejemplo` es una foto del primer pipeline.
-6. Corre `pnpm install`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck` y `pnpm test:layers`.
+```bash
+pnpm remove:examples              # solo muestra lo que haría
+pnpm remove:examples --confirmar  # lo aplica
+```
+
+Borra las cuatro apps de ejemplo y sus carpetas en cada capa y en `tests-of-layers`, y las saca de `docker/run-tests.sh`, `docker/summary.mjs`, las listas `app:` de CircleCI y la lista `MOBILE` de ESLint. También quita de `tests-of-layers/test-data/loader.test.ts` el bloque que carga los datos de los ejemplos. Todo se calcula antes de tocar el disco, así que si algo falla no borra nada.
+
+Después:
+
+1. Corre `pnpm install` y haz commit de `pnpm-lock.yaml`.
+2. Corre `pnpm format:check`, `pnpm lint`, `pnpm typecheck` y `pnpm test:layers`.
+3. Si usabas el workflow `mobile`, cambia el `--filter` de `e2e-mobile-browserstack` por tu app Android, o bórralo.
+4. El comando lista los archivos que todavía nombran los ejemplos. Casi siempre son READMEs que los usan como ilustración y `docs/curso.html` y `docs/flujo.html`, que enseñan con ellos: cámbialos por tu producto o bórralos. `docs/reporte-ejemplo` es una foto del primer pipeline; puedes borrarla.
+5. Cuando ya no los necesites, puedes borrar `scripts/remove-examples.mjs`, su prueba en `tests-of-layers/scripts` y el script `remove:examples` del `package.json`.
 
 ## 6. Bitbucket
 

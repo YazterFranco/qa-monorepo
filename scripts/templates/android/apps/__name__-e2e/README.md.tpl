@@ -36,6 +36,15 @@ export BROWSERSTACK_APP=$(pnpm --filter [[name]]-e2e --silent app:upload)
 MOBILE_TARGET=browserstack pnpm --filter [[name]]-e2e exec wdio run wdio.conf.ts
 ```
 
-Las variables opcionales (`BROWSERSTACK_DEVICE`, `BROWSERSTACK_OS_VERSION`, `BROWSERSTACK_PARALLEL`, `BROWSERSTACK_BUILD`) están en el [README de my-demo-app-e2e](../my-demo-app-e2e/README.md#correr-en-browserstack), si todavía lo conservas. El pipeline `mobile` de CircleCI solo corre `my-demo-app-e2e`: para sumar esta app, cambia el `--filter` del job `e2e-mobile-browserstack`.
+Variables opcionales:
+
+| Variable                  | Para qué                                          | Por defecto      |
+| ------------------------- | ------------------------------------------------- | ---------------- |
+| `BROWSERSTACK_DEVICE`     | Dispositivo, como aparece en BrowserStack         | `Google Pixel 8` |
+| `BROWSERSTACK_OS_VERSION` | Versión de Android                                | `14.0`           |
+| `BROWSERSTACK_PARALLEL`   | Sesiones a la vez; no pases del límite de tu plan | `1`              |
+| `BROWSERSTACK_BUILD`      | Nombre del grupo de sesiones en el panel          | `circleci-<n>`   |
+
+BrowserStack guarda cada app subida 30 días: si no cambió el APK, reutiliza el mismo `BROWSERSTACK_APP`. El workflow `mobile` de CircleCI solo se lanza con `run_mobile=true` y su job `e2e-mobile-browserstack` filtra por una app: cambia el `--filter` por `[[name]]-e2e` para correr esta.
 
 Mientras los textos de `messages.json` digan `TODO`, los tests fallan a propósito: así no pasan por error.

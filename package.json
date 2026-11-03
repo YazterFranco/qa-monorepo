@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
     "new:app": "node scripts/new-app.mjs",
+    "remove:examples": "node scripts/remove-examples.mjs",
     "prepare": "husky",
     "test:e2e": "turbo run test:e2e",
     "test:layers": "turbo run test:layers",

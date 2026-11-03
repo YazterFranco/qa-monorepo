@@ -70,15 +70,13 @@ test.describe("test-data: loadEnvironment", () => {
   });
 
   test("lista los productos disponibles si el pedido no existe", () => {
-    expect(() => loadEnvironment("tienda", "public-demo")).toThrow(
-      /No existe el producto "tienda"\. Disponibles: .*saucedemo.*the-internet/,
+    expect(() => loadEnvironment("tienda", "public-demo", { root })).toThrow(
+      /No existe el producto "tienda"\. Disponibles: .*sample/,
     );
   });
 
   test("rechaza nombres que salen de la carpeta", () => {
-    expect(() => loadEnvironment("the-internet", "../secrets")).toThrow(
-      /Nombre de ambiente inválido/,
-    );
-    expect(() => loadEnvironment("../saucedemo")).toThrow(/Nombre de producto inválido/);
+    expect(() => loadEnvironment("sample", "../secrets")).toThrow(/Nombre de ambiente inválido/);
+    expect(() => loadEnvironment("../sample")).toThrow(/Nombre de producto inválido/);
   });
 });
