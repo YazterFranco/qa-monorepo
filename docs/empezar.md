@@ -28,15 +28,7 @@ git push -u origin main
 
 ## 2. Instalarlo
 
-Necesitas Node 24 y pnpm. Docker es opcional.
-
-```bash
-corepack enable          # activa la versión de pnpm que fija package.json
-pnpm install
-pnpm --filter the-internet-e2e exec playwright install chromium webkit
-```
-
-El último comando descarga los navegadores. Si ya borraste `the-internet-e2e` (sección 5), usa el nombre de una de tus apps web.
+Sigue los pasos de [Requisitos e instalación](../README.md#requisitos) del README: Node 24, pnpm con corepack, `pnpm install` y, si vas a correr web, los navegadores de Playwright. Después verifica con `pnpm check:versions` y `pnpm test:layers`.
 
 ## 3. Crear tu producto
 

@@ -46,27 +46,66 @@ Los 16 tests de Sauce Demo corren en 3 perfiles: Chrome de escritorio, Pixel 7 e
 
 ## Requisitos
 
-- Node 24 (está en [.nvmrc](.nvmrc)).
-- pnpm 12.16.1 (está en `packageManager` de [package.json](package.json)).
-- Solo para la app Android, una de dos: Android SDK con un emulador (por defecto `Pixel_10_Pro`) y Java 17 o más, o una cuenta de BrowserStack para correrla en la nube sin emulador. Detalles en [apps/my-demo-app-e2e](apps/my-demo-app-e2e).
-- Opcional: Docker, para correr la suite web y de API sin instalar Node ni navegadores ([Correr todo en Docker](#correr-todo-en-docker)).
+| Qué                | Versión                                                                              | Cómo verificarlo                                 |
+| ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| Node.js            | 24 (está en [.nvmrc](.nvmrc))                                                        | `node -v` → `v24.x`                              |
+| pnpm               | 12.16.1 (en `packageManager` de [package.json](package.json))                        | `pnpm -v` → `12.16.1`                            |
+| Git                | Cualquiera reciente                                                                  | `git --version`                                  |
+| Android SDK y Java | Solo para la app Android: Java 17 o más, y un emulador, o una cuenta de BrowserStack | Ver [apps/my-demo-app-e2e](apps/my-demo-app-e2e) |
+| Docker             | Opcional                                                                             | `docker -v`                                      |
+
+En Windows, usa WSL (Ubuntu) y sigue los pasos de Linux dentro de WSL.
 
 ## Instalación
 
+Estos pasos sirven para cualquier repo que salga de este.
+
+**1. Instala Node 24.** Elige una forma:
+
+- Con [nvm](https://github.com/nvm-sh/nvm) (macOS y Linux): `nvm install` lee `.nvmrc` e instala la versión exacta; después `nvm use`.
+- Con el instalador oficial desde [nodejs.org](https://nodejs.org): elige la versión 24 LTS.
+
+**2. Activa pnpm.** Corepack viene con Node y usa la versión que fija `package.json`, así no instalas pnpm a mano:
+
 ```bash
-nvm use
-npm install --global pnpm@12.16.1
+corepack enable
+pnpm -v                # debe decir 12.16.1
+```
+
+Si `corepack enable` falla por permisos en Linux o macOS, usa `sudo corepack enable`.
+
+**3. Descarga las dependencias.** Desde la raíz del repo:
+
+```bash
 pnpm install
+```
+
+Esto también activa los git hooks de Husky (ESLint y Prettier antes de cada commit).
+
+**4. Instala los navegadores** para las apps web. Solo hace falta la primera vez y cada vez que cambie la versión de Playwright:
+
+```bash
 pnpm --filter saucedemo-e2e exec playwright install chromium webkit
 ```
 
-`pnpm install` también activa los git hooks de Husky. El último comando solo hace falta la primera vez o cuando cambia la versión de Playwright; los navegadores sirven para todas las apps web.
+En Linux, si Playwright avisa de librerías que faltan, agrega `--with-deps` al final de ese comando. Si ya quitaste los ejemplos, cambia `saucedemo-e2e` por el nombre de tu app web (`<tu-app>-e2e`).
 
-Para la app Android, además, una vez:
+**5. Solo para la app Android:** baja el APK de la app de demostración una vez:
 
 ```bash
 pnpm --filter my-demo-app-e2e app:download
 ```
+
+**6. Verifica que todo quedó bien.** Estos dos comandos no necesitan navegadores ni red:
+
+```bash
+pnpm check:versions    # Playwright, pnpm y Node coinciden en todos los archivos
+pnpm test:layers       # las pruebas de capas
+```
+
+Si `check:versions` dice `OK` en las tres líneas y `test:layers` pasa, el repo está listo. Luego sigue con el [inicio rápido](#inicio-rápido).
+
+Si algo falla, revisa la sección [Problemas comunes](#problemas-comunes).
 
 ## Inicio rápido
 
