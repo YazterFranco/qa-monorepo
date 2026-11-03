@@ -10,13 +10,14 @@ Usan el runner de Playwright, pero ninguna pide la fixture `page`, así que no s
 
 ## Qué se prueba
 
-| Carpeta                  | Capa         | Cómo                                                                           |
-| ------------------------ | ------------ | ------------------------------------------------------------------------------ |
-| [test-data](test-data)   | `test-data`  | Datos reales de cada producto y un producto de ejemplo en `test-data/samples/` |
-| [pages](pages)           | `pages`      | Con una page simulada que registra cada acción                                 |
-| [components](components) | `components` | Con la page simulada, revisando que busque dentro de su contenedor             |
-| [api](api)               | `api`        | Con un `request` simulado que registra método, URL, cuerpo y cabeceras         |
-| [steps](steps)           | `steps`      | Con la page o el request simulados y datos escritos en la prueba               |
+| Carpeta                  | Capa                          | Cómo                                                                           |
+| ------------------------ | ----------------------------- | ------------------------------------------------------------------------------ |
+| [test-data](test-data)   | `test-data`                   | Datos reales de cada producto y un producto de ejemplo en `test-data/samples/` |
+| [pages](pages)           | `pages`                       | Con una page simulada que registra cada acción                                 |
+| [components](components) | `components`                  | Con la page simulada, revisando que busque dentro de su contenedor             |
+| [api](api)               | `api`                         | Con un `request` simulado que registra método, URL, cuerpo y cabeceras         |
+| [steps](steps)           | `steps`                       | Con la page o el request simulados y datos escritos en la prueba               |
+| [scripts](scripts)       | `new:app` y `remove:examples` | Generan y quitan productos en una carpeta temporal y revisan el resultado      |
 
 Dentro de cada carpeta hay una subcarpeta por producto, igual que en `libs/`.
 
