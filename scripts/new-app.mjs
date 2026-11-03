@@ -1,6 +1,6 @@
 // Crea un producto nuevo con todas sus capas (datos, pages, steps, fixtures, app y pruebas de
 // capas) y lo registra en Docker y CI. Las plantillas están en scripts/templates/<tipo>.
-// Uso: pnpm new:app <nombre> --tipo web|api|android [opciones]. Con --ayuda se listan todas.
+// Uso: pnpm new:app <nombre> --tipo web|api|android|web,api,...|todos [opciones].
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -8,20 +8,25 @@ import { URL } from "node:url";
 import { parseArgs } from "node:util";
 import { appendItems, hasItem } from "./lib/lists.mjs";
 
+// suffix: sufijo de la carpeta de la app. word: cómo se nombra el producto cuando se crean
+// varios tipos a la vez (<nombre>-web, <nombre>-api, <nombre>-movil).
 const TYPES = {
-  web: { suffix: "e2e", label: "Web", registered: true },
-  api: { suffix: "api", label: "API", registered: true },
-  android: { suffix: "e2e", label: "App Android", registered: false },
+  web: { suffix: "e2e", word: "web", label: "Web" },
+  api: { suffix: "api", word: "api", label: "API" },
+  android: { suffix: "e2e", word: "movil", label: "App Android" },
 };
+const ALL_TYPES = ["web", "api", "android"];
 const DEFAULT_URL = "https://staging.example.com";
 const DEFAULT_ENVIRONMENT = "staging";
 
-const HELP = `Uso: pnpm new:app <nombre> --tipo web|api|android [opciones]
+const HELP = `Uso: pnpm new:app <nombre> --tipo <tipos> [opciones]
 
 Crea un producto nuevo con sus capas y lo registra en Docker y CI.
 
   <nombre>            minúsculas, números y guiones; empieza con letra (por ejemplo, mi-tienda)
-  --tipo              web, api o android (obligatorio)
+  --tipo              web, api, android, varios separados por coma (web,api) o todos (obligatorio)
+                      Con varios tipos, cada producto se llama <nombre>-web, <nombre>-api y
+                      <nombre>-movil. Con un solo tipo, se llama <nombre> tal cual.
   --url               URL base de la web o la API (por defecto ${DEFAULT_URL})
   --ambiente          nombre del ambiente de datos (por defecto ${DEFAULT_ENVIRONMENT})
   --paquete           applicationId de la app Android (por defecto com.example.<nombre>)
@@ -52,8 +57,7 @@ function main() {
   }
 
   try {
-    const options = validate(positionals, values);
-    run(options);
+    run(validate(positionals, values));
   } catch (error) {
     console.error(`Error: ${error instanceof Error ? error.message : String(error)}\n`);
     console.error("Con --ayuda ves todas las opciones.");
@@ -61,12 +65,12 @@ function main() {
   }
 }
 
-/** Comprueba los argumentos y arma los valores que se reemplazan en las plantillas. */
+/** Comprueba los argumentos y devuelve lo que necesita cada producto. */
 function validate(positionals, values) {
   const [name, ...extra] = positionals;
   if (!name || extra.length > 0) {
     throw new Error(
-      "Indica un solo nombre de producto, por ejemplo: pnpm new:app mi-tienda --tipo web",
+      "Indica un solo nombre de producto, por ejemplo: pnpm new:app mi-tienda --tipo todos",
     );
   }
   if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(name)) {
@@ -75,10 +79,7 @@ function validate(positionals, values) {
     );
   }
 
-  const type = values.tipo;
-  if (!type || !(type in TYPES)) {
-    throw new Error("Falta --tipo, o no es válido. Usa web, api o android.");
-  }
+  const types = parseTypes(values.tipo);
 
   const environment = values.ambiente ?? DEFAULT_ENVIRONMENT;
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(environment)) {
@@ -88,30 +89,66 @@ function validate(positionals, values) {
   const url = values.url ?? DEFAULT_URL;
   assertUrl(url);
 
-  const applicationId = values.paquete ?? `com.example.${name.replaceAll("-", "")}`;
-  if (!/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(applicationId)) {
-    throw new Error(`Paquete inválido: "${applicationId}". Ejemplo: com.empresa.app.`);
+  if (
+    values.paquete !== undefined &&
+    !/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/.test(values.paquete)
+  ) {
+    throw new Error(`Paquete inválido: "${values.paquete}". Ejemplo: com.empresa.app.`);
   }
 
-  const root = path.resolve(values.raiz ?? path.join(import.meta.dirname, ".."));
-  const camel = name.replace(/-([a-z0-9])/g, (_, letter) => letter.toUpperCase());
-
   return {
-    type,
-    name,
-    root,
+    base: name,
+    types,
+    multi: types.length > 1,
+    root: path.resolve(values.raiz ?? path.join(import.meta.dirname, "..")),
     dryRun: values["dry-run"],
     format: !values["sin-formato"],
+    url,
+    environment,
     usesDefaultUrl: values.url === undefined,
-    tokens: {
-      name,
-      camel,
-      ENV_PREFIX: name.toUpperCase().replaceAll("-", "_"),
-      url,
-      environment,
-      package: applicationId,
-    },
+    userPackage: values.paquete ?? null,
   };
+}
+
+function parseTypes(value) {
+  const hint = "Usa web, api, android, varios separados por coma (web,api) o todos.";
+  if (!value) {
+    throw new Error(`Falta --tipo. ${hint}`);
+  }
+  const requested = value === "todos" ? ALL_TYPES : value.split(",").map((item) => item.trim());
+  const invalid = requested.find((item) => !Object.hasOwn(TYPES, item));
+  if (invalid !== undefined) {
+    throw new Error(`Tipo no válido: "${invalid}". ${hint}`);
+  }
+  return [...new Set(requested)];
+}
+
+/** Un producto por tipo: nombre, carpeta de la app y valores que se reemplazan en las plantillas. */
+function buildPlans(options) {
+  const { base, types, multi, url, environment, userPackage, root } = options;
+  return types.map((type) => {
+    const { suffix, word } = TYPES[type];
+    const name = multi ? `${base}-${word}` : base;
+    // Si el nombre ya termina en el sufijo (mi-api, de tipo api), no se repite (mi-api-api).
+    const app = name.endsWith(`-${suffix}`) ? name : `${name}-${suffix}`;
+    return {
+      type,
+      name,
+      app,
+      root,
+      usesDefaultUrl: options.usesDefaultUrl,
+      environment,
+      tokens: {
+        name,
+        app,
+        camel: name.replace(/-([a-z0-9])/g, (_, letter) => letter.toUpperCase()),
+        ENV_PREFIX: name.toUpperCase().replaceAll("-", "_"),
+        url,
+        environment,
+        package: userPackage ?? `com.example.${name.replaceAll("-", "")}`,
+      },
+    };
+  });
 }
 
 function assertUrl(value) {
@@ -127,22 +164,33 @@ function assertUrl(value) {
 }
 
 function run(options) {
-  const { type, name, root, dryRun, tokens } = options;
-  const files = planFiles(type, tokens);
+  const { root, dryRun, format } = options;
+  const plans = buildPlans(options);
+  // Se calcula todo antes de escribir: si un producto choca, no se crea ninguno.
+  const files = plans.flatMap((plan) =>
+    planFiles(plan.type, plan.tokens).map((file) => ({ ...file, plan })),
+  );
 
-  const existing = files.filter((file) => existsSync(path.join(root, file.target)));
-  if (existing.length > 0) {
+  const conflicts = files.filter((file) => existsSync(path.join(root, file.target)));
+  if (conflicts.length > 0) {
+    const names = [...new Set(conflicts.map((file) => file.plan.name))];
+    const label = names.map((name) => `"${name}"`).join(" y ");
+    const verb = names.length > 1 ? "ya existen" : "ya existe";
     throw new Error(
-      `"${name}" ya existe; no se sobrescribe nada. Archivos que chocan:\n  ${existing
+      `${label} ${verb}; no se sobrescribe nada. Archivos que chocan:\n  ${conflicts
         .map((file) => file.target)
         .join("\n  ")}`,
     );
   }
 
-  const registrations = planRegistrations(type, tokens);
-  console.log(`${dryRun ? "Se crearían" : "Creando"} ${files.length} archivos de "${name}":`);
-  for (const file of files) {
-    console.log(`  + ${file.target}`);
+  console.log(
+    `${dryRun ? "Se crearían" : "Creando"} ${files.length} archivos en ${plans.length} producto(s):`,
+  );
+  for (const plan of plans) {
+    console.log(`\n  ${plan.name} (${TYPES[plan.type].label}) → apps/${plan.app}`);
+    for (const file of files.filter((item) => item.plan === plan)) {
+      console.log(`    + ${file.target}`);
+    }
   }
 
   const touched = files.map((file) => file.target);
@@ -155,13 +203,17 @@ function run(options) {
   }
 
   console.log(`\n${dryRun ? "Se registraría" : "Registrando"} en el resto del repo:`);
-  for (const registration of registrations) {
-    const result = dryRun ? { status: "pendiente" } : applyRegistration(root, registration);
-    console.log(`  ${symbol(result.status)} ${registration.file}: ${registration.what}`);
-    if (result.status === "cambiado") {
-      touched.push(registration.file);
-    } else if (result.status === "no encontrado") {
-      console.log(`      No encontré dónde. Agrégalo a mano: ${registration.manual}`);
+  for (const plan of plans) {
+    for (const registration of planRegistrations(plan.type, plan.tokens)) {
+      const result = dryRun ? { status: "pendiente" } : applyRegistration(root, registration);
+      console.log(
+        `  ${symbol(result.status)} ${registration.file}: ${registration.what} (${plan.name})`,
+      );
+      if (result.status === "cambiado") {
+        touched.push(registration.file);
+      } else if (result.status === "no encontrado") {
+        console.log(`      No encontré dónde. Agrégalo a mano: ${registration.manual}`);
+      }
     }
   }
 
@@ -169,17 +221,17 @@ function run(options) {
     console.log("\n--dry-run: no se escribió nada.");
     return;
   }
-  if (options.format) {
-    formatFiles(root, touched);
+  if (format) {
+    formatFiles(root, [...new Set(touched)]);
   }
-  printNextSteps(options);
+  printNextSteps(plans, options);
 }
 
 /** Lee la carpeta de plantillas del tipo y devuelve cada archivo con su ruta y contenido final. */
 function planFiles(type, tokens) {
   const templateRoot = path.join(import.meta.dirname, "templates", type);
   return listFiles(templateRoot).map((relative) => {
-    const target = render(relative, tokens, /__(name|environment)__/g).replace(/\.tpl$/, "");
+    const target = render(relative, tokens, /__(name|app|environment)__/g).replace(/\.tpl$/, "");
     return {
       target: target.split(path.sep).join("/"),
       content: render(readFileSync(path.join(templateRoot, relative), "utf8"), tokens),
@@ -206,8 +258,7 @@ function render(text, tokens, pattern = /\[\[(\w+)\]\]/g) {
 
 /** Qué archivos existentes hay que tocar para que el producto nuevo corra en Docker y CI. */
 function planRegistrations(type, tokens) {
-  const { name } = tokens;
-  const dir = `${name}-${TYPES[type].suffix}`;
+  const { name, app: dir } = tokens;
   const description = `${TYPES[type].label} · ${name}`;
 
   if (type === "android") {
@@ -326,13 +377,28 @@ function formatFiles(root, files) {
   }
 }
 
-function printNextSteps({ type, name, tokens, usesDefaultUrl }) {
-  const { ENV_PREFIX, environment } = tokens;
-  const dir = `${name}-${TYPES[type].suffix}`;
-  const steps = [
-    "Corre `pnpm install`: agrega el paquete nuevo al workspace y actualiza pnpm-lock.yaml. " +
-      "Haz commit del lockfile; sin él, el CI falla con --frozen-lockfile.",
-  ];
+function printNextSteps(plans, { environment }) {
+  console.log("\nSiguientes pasos:");
+  console.log(
+    "  Una sola vez, para todos: corre `pnpm install`. Agrega los paquetes nuevos al workspace y " +
+      "actualiza pnpm-lock.yaml. Haz commit del lockfile; sin él, el CI falla con --frozen-lockfile.",
+  );
+  for (const plan of plans) {
+    console.log(`\n  ${plan.name} (${TYPES[plan.type].label}):`);
+    stepsFor(plan).forEach((step, index) => console.log(`    ${index + 1}. ${step}`));
+  }
+  if (environment !== "public-demo") {
+    console.log(
+      `\n  Para todos: el CI y el cargador usan public-demo por defecto. Para que usen ` +
+        `"${environment}", cambia \`test_env\` en .circleci/config.yml y DEFAULT_ENVIRONMENT en ` +
+        "libs/test-data/loader.ts. Más detalle en docs/empezar.md.",
+    );
+  }
+}
+
+function stepsFor({ type, name, app, tokens, usesDefaultUrl, environment }) {
+  const { ENV_PREFIX } = tokens;
+  const steps = [];
   if (type === "web") {
     steps.push(
       `Ajusta los selectores de libs/pages/${name} y los textos de ` +
@@ -346,7 +412,7 @@ function printNextSteps({ type, name, tokens, usesDefaultUrl }) {
   }
   if (type === "android") {
     steps.push(
-      `Copia tu APK de depuración en apps/${dir}/app/${name}.apk y revisa el paquete en ` +
+      `Copia tu APK de depuración en apps/${app}/app/${name}.apk y revisa el paquete en ` +
         `libs/components/${name}/android-id.ts. Ajusta las pantallas de libs/pages/${name}.`,
     );
   }
@@ -362,18 +428,9 @@ function printNextSteps({ type, name, tokens, usesDefaultUrl }) {
   steps.push(
     `Corre \`pnpm test:layers\` y luego \`TEST_ENV=${environment} pnpm ${
       type === "android"
-        ? `--filter ${dir} exec wdio run wdio.conf.ts`
-        : `turbo run test:e2e --filter=${dir}`
+        ? `--filter ${app} exec wdio run wdio.conf.ts`
+        : `turbo run test:e2e --filter=${app}`
     }\`.`,
   );
-  if (environment !== "public-demo") {
-    steps.push(
-      `El CI y el cargador usan public-demo por defecto. Para que usen "${environment}", cambia ` +
-        "`test_env` en .circleci/config.yml y DEFAULT_ENVIRONMENT en libs/test-data/loader.ts. " +
-        "Más detalle en docs/empezar.md.",
-    );
-  }
-
-  console.log("\nSiguientes pasos:");
-  steps.forEach((step, index) => console.log(`  ${index + 1}. ${step}`));
+  return steps;
 }

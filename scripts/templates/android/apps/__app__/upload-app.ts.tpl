@@ -1,5 +1,5 @@
 // Sube el APK a BrowserStack con su API oficial y imprime el `bs://...` que identifica la app.
-// Uso: pnpm --filter [[name]]-e2e --silent app:upload [ruta-al-apk]
+// Uso: pnpm --filter [[app]] --silent app:upload [ruta-al-apk]
 // Credenciales: BROWSERSTACK_USERNAME y BROWSERSTACK_ACCESS_KEY, del entorno. No se imprimen.
 // Lo único que va a stdout es el `bs://...`, para poder guardarlo en BROWSERSTACK_APP.
 import { readFile } from "node:fs/promises";

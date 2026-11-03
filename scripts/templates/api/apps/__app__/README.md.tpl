@@ -1,4 +1,4 @@
-# [[name]]-api
+# [[app]]
 
 Pruebas de API de `[[name]]` con Playwright (`request`), sin navegador. Generada con `pnpm new:app [[name]] --tipo api`.
 
@@ -12,7 +12,7 @@ Pruebas de API de `[[name]]` con Playwright (`request`), sin navegador. Generada
 
 ```bash
 export TEST_ENV=[[environment]]
-pnpm turbo run test:e2e --filter=[[name]]-api
+pnpm turbo run test:e2e --filter=[[app]]
 ```
 
 ## Cómo seguir

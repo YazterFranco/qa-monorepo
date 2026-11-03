@@ -1,5 +1,5 @@
 {
-  "name": "[[name]]-api",
+  "name": "[[app]]",
   "private": true,
   "scripts": {
     "lint": "eslint .",
@@ -7,8 +7,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "api": "workspace:*",
     "fixtures": "workspace:*",
+    "pages": "workspace:*",
     "utils": "workspace:*"
   },
   "devDependencies": {

@@ -124,4 +124,62 @@ test.describe("scripts: new-app", () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+  test("--tipo todos crea los tres productos con su nombre y los registra", () => {
+    const root = createRoot();
+    try {
+      generate(root, "mi-tienda", "--tipo", "todos", "--url", "https://staging.example.org");
+
+      expect(existsSync(path.join(root, "apps/mi-tienda-web-e2e/login.spec.ts"))).toBe(true);
+      expect(existsSync(path.join(root, "apps/mi-tienda-api/status.spec.ts"))).toBe(true);
+      expect(existsSync(path.join(root, "apps/mi-tienda-movil-e2e/login.spec.ts"))).toBe(true);
+      for (const name of ["mi-tienda-web", "mi-tienda-api", "mi-tienda-movil"]) {
+        expect(
+          existsSync(path.join(root, "libs/test-data", name, "environments/staging.json")),
+        ).toBe(true);
+      }
+      expect(read(root, "docker/run-tests.sh")).toContain(
+        "apps/mi-tienda-web-e2e apps/mi-tienda-api",
+      );
+      expect(read(root, "eslint.config.mjs")).toContain('"libs/*/mi-tienda-movil/**"');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("--tipo con una lista crea solo los tipos pedidos", () => {
+    const root = createRoot();
+    try {
+      generate(root, "mi-tienda", "--tipo", "web,api");
+
+      expect(existsSync(path.join(root, "apps/mi-tienda-web-e2e"))).toBe(true);
+      expect(existsSync(path.join(root, "apps/mi-tienda-api"))).toBe(true);
+      expect(existsSync(path.join(root, "apps/mi-tienda-movil-e2e"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("si uno de los productos ya existe, no crea ninguno", () => {
+    const root = createRoot();
+    try {
+      generate(root, "mi-tienda-api", "--tipo", "api");
+
+      expect(() => generate(root, "mi-tienda", "--tipo", "todos")).toThrow(/ya existe/);
+      expect(existsSync(path.join(root, "apps/mi-tienda-web-e2e"))).toBe(false);
+      expect(existsSync(path.join(root, "apps/mi-tienda-movil-e2e"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("rechaza un tipo que no existe dentro de una lista", () => {
+    const root = createRoot();
+    try {
+      expect(() => generate(root, "mi-tienda", "--tipo", "web,escritorio")).toThrow(
+        /Tipo no válido: "escritorio"/,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

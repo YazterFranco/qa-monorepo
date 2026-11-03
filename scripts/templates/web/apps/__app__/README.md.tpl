@@ -1,4 +1,4 @@
-# [[name]]-e2e
+# [[app]]
 
 Pruebas web de `[[name]]` con Playwright. Generada con `pnpm new:app [[name]] --tipo web`.
 
@@ -19,8 +19,8 @@ Pruebas web de `[[name]]` con Playwright. Generada con `pnpm new:app [[name]] --
 
 ```bash
 export TEST_ENV=[[environment]]
-pnpm turbo run test:e2e --filter=[[name]]-e2e
-pnpm --filter [[name]]-e2e exec playwright test login.spec.ts
+pnpm turbo run test:e2e --filter=[[app]]
+pnpm --filter [[app]] exec playwright test login.spec.ts
 ```
 
 Mientras los textos de `messages.json` digan `TODO`, los tests fallan a propósito: así no pasan por error.
