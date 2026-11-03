@@ -543,3 +543,7 @@ La emulación móvil web corre dentro de `e2e-saucedemo-e2e` y `docker-e2e`. El 
 Cómo agregar un page, un cliente de API, un step, un ambiente o un producto: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Si cambias una regla, un comando o una carpeta, actualiza también el README de esa carpeta y, si aplica, [docs/flujo.html](docs/flujo.html) y [docs/curso.html](docs/curso.html).
+
+## Licencia
+
+[MIT](LICENSE): puedes usarlo, copiarlo y modificarlo, también en proyectos comerciales, conservando el aviso de copyright. Las apps de demostración prueban sitios y apps de terceros que tienen sus propios términos.
