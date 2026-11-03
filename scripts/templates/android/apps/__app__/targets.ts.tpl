@@ -46,7 +46,7 @@ export function browserStackConnection(variables: Variables = process.env) {
 
 /**
  * Capabilities de Appium para un dispositivo de BrowserStack. BROWSERSTACK_APP es el `bs://...`
- * que imprime `pnpm --filter [[name]]-e2e app:upload`.
+ * que imprime `pnpm --filter [[app]] app:upload`.
  */
 export function browserStackCapabilities(variables: Variables = process.env) {
   return {
@@ -60,7 +60,7 @@ export function browserStackCapabilities(variables: Variables = process.env) {
     "bstack:options": {
       projectName: "[[name]]",
       buildName: buildName(variables),
-      sessionName: "[[name]]-e2e",
+      sessionName: "[[app]]",
     },
   };
 }

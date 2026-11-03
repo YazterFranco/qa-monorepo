@@ -1,10 +1,10 @@
-# [[name]]-e2e
+# [[app]]
 
 Pruebas móviles nativas de `[[name]]` (Android) con Appium, UiAutomator2 y WebdriverIO. Generada con `pnpm new:app [[name]] --tipo android`. Corren en un emulador de tu máquina o en BrowserStack; `MOBILE_TARGET` elige dónde (`local` por defecto, o `browserstack`).
 
 ## Antes de la primera corrida
 
-1. **El APK.** No se guarda en el repo. Copia un APK de depuración de tu app en `apps/[[name]]-e2e/app/[[name]].apk`.
+1. **El APK.** No se guarda en el repo. Copia un APK de depuración de tu app en `apps/[[app]]/app/[[name]].apk`.
 2. **El paquete.** Está en [android-id.ts](../../libs/components/[[name]]/android-id.ts) (`[[package]]`). Si no es el de tu app, cámbialo. Sirve para reiniciar la app y para los selectores por resource-id.
 3. **Credenciales.** Las cuentas de prueba las crea una persona. Define estas variables en tu terminal; nunca van en el repo:
 
@@ -22,7 +22,7 @@ Necesitas Android SDK con un emulador, Java 17 o más, y `ANDROID_HOME` y `JAVA_
 
 ```bash
 export TEST_ENV=[[environment]]
-pnpm --filter [[name]]-e2e exec wdio run wdio.conf.ts
+pnpm --filter [[app]] exec wdio run wdio.conf.ts
 ```
 
 ## Correr en BrowserStack
@@ -32,8 +32,8 @@ Sin emulador, Android SDK ni Java: la sesión corre en un dispositivo real de Br
 ```bash
 export BROWSERSTACK_USERNAME=<usuario>
 export BROWSERSTACK_ACCESS_KEY=<clave>
-export BROWSERSTACK_APP=$(pnpm --filter [[name]]-e2e --silent app:upload)
-MOBILE_TARGET=browserstack pnpm --filter [[name]]-e2e exec wdio run wdio.conf.ts
+export BROWSERSTACK_APP=$(pnpm --filter [[app]] --silent app:upload)
+MOBILE_TARGET=browserstack pnpm --filter [[app]] exec wdio run wdio.conf.ts
 ```
 
 Variables opcionales:
@@ -45,6 +45,6 @@ Variables opcionales:
 | `BROWSERSTACK_PARALLEL`   | Sesiones a la vez; no pases del límite de tu plan | `1`              |
 | `BROWSERSTACK_BUILD`      | Nombre del grupo de sesiones en el panel          | `circleci-<n>`   |
 
-BrowserStack guarda cada app subida 30 días: si no cambió el APK, reutiliza el mismo `BROWSERSTACK_APP`. El workflow `mobile` de CircleCI solo se lanza con `run_mobile=true` y su job `e2e-mobile-browserstack` filtra por una app: cambia el `--filter` por `[[name]]-e2e` para correr esta.
+BrowserStack guarda cada app subida 30 días: si no cambió el APK, reutiliza el mismo `BROWSERSTACK_APP`. El workflow `mobile` de CircleCI solo se lanza con `run_mobile=true` y su job `e2e-mobile-browserstack` filtra por una app: cambia el `--filter` por `[[app]]` para correr esta.
 
 Mientras los textos de `messages.json` digan `TODO`, los tests fallan a propósito: así no pasan por error.

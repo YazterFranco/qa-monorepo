@@ -44,6 +44,8 @@ El último comando descarga los navegadores. Si ya borraste `the-internet-e2e` (
 pnpm new:app <nombre> --tipo web|api|android [--url ...] [--ambiente ...] [--paquete ...]
 ```
 
+`--tipo` acepta un tipo, varios separados por coma (`web,api`) o `todos`. Con varios, cada producto se llama `<nombre>-web`, `<nombre>-api` y `<nombre>-movil`, porque web y móvil no pueden compartir nombre. Con un solo tipo, se llama como lo escribiste. Si uno de los productos ya existe, el comando no crea ninguno.
+
 El comando crea el producto con todas sus capas (datos, pages o clientes, steps, fixtures y la app), una prueba de capas para cada pieza, y lo registra en el reporte de Docker, en los dos workflows de CI y en las reglas de ESLint. Con `--dry-run` muestra lo que haría sin escribir nada. No sobrescribe nada: si el producto ya existe, se detiene.
 
 Siempre sigue igual:

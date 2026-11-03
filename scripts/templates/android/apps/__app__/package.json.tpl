@@ -1,5 +1,5 @@
 {
-  "name": "[[name]]-e2e",
+  "name": "[[app]]",
   "private": true,
   "scripts": {
     "app:upload": "node upload-app.ts",
